@@ -85,7 +85,8 @@ class DebouncedRefresher {
         memoryRoot: memoryRoot && memoryRoot.length > 0 ? memoryRoot : undefined,
       });
       if (this.disposed) return;
-      const inconsistencies = analyzeHarness(harness);
+      const inconsistencies = await analyzeHarness(harness);
+      if (this.disposed) return;
       this.provider.setHarness(harness);
       this.provider.setInconsistencies(inconsistencies);
       publishDiagnostics(this.diagnostics, workspace, inconsistencies);

@@ -1,9 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { promises as fs } from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { analyzeHarness } from "../../src/analyzer/index.js";
 import { duplicateSkillName } from "../../src/analyzer/rules/duplicateSkillName.js";
 import { hookEmptyCommand } from "../../src/analyzer/rules/hookEmptyCommand.js";
 import { mcpMissingEnv } from "../../src/analyzer/rules/mcpMissingEnv.js";
 import { missingSkillDescription } from "../../src/analyzer/rules/missingSkillDescription.js";
+import { pluginMissingInstall } from "../../src/analyzer/rules/pluginMissingInstall.js";
 import { emptyHarness, type Harness } from "../../src/parser/types.js";
 
 function makeHarness(patch: Partial<Harness> = {}): Harness {
@@ -100,7 +104,12 @@ describe("mcpMissingEnv", () => {
           id: "github",
           name: "github",
           type: "stdio",
-          envKeys: ["GITHUB_PERSONAL_ACCESS_TOKEN", "GITHUB_PAT", "RESOLVED_FROM_SETTINGS", "FROM_SHELL"],
+          envKeys: [
+            "GITHUB_PERSONAL_ACCESS_TOKEN",
+            "GITHUB_PAT",
+            "RESOLVED_FROM_SETTINGS",
+            "FROM_SHELL",
+          ],
           envRefs: ["GITHUB_PAT", "RESOLVED_FROM_SETTINGS", "FROM_SHELL"],
           source: "project",
           path: "/ws/.mcp.json",
@@ -159,8 +168,66 @@ describe("hookEmptyCommand", () => {
   });
 });
 
+describe("pluginMissingInstall", () => {
+  let pluginsRoot: string;
+
+  beforeEach(async () => {
+    pluginsRoot = await fs.mkdtemp(path.join(os.tmpdir(), "yggdrasil-plugins-"));
+  });
+
+  afterEach(async () => {
+    await fs.rm(pluginsRoot, { recursive: true, force: true });
+  });
+
+  it("flags enabled plugins that are not present on disk", async () => {
+    await fs.mkdir(path.join(pluginsRoot, "claude-plugins-official", "playwright"), {
+      recursive: true,
+    });
+    const harness = makeHarness({
+      plugins: [
+        {
+          id: "playwright@claude-plugins-official::project",
+          name: "playwright@claude-plugins-official",
+          enabled: true,
+          source: "project",
+        },
+        {
+          id: "missing-thing@some-namespace::project",
+          name: "missing-thing@some-namespace",
+          enabled: true,
+          source: "project",
+        },
+        {
+          id: "disabled@some-namespace::project",
+          name: "disabled@some-namespace",
+          enabled: false,
+          source: "project",
+        },
+      ],
+    });
+    const found = await pluginMissingInstall(harness, { pluginsRoot });
+    expect(found).toHaveLength(1);
+    expect(found[0].rule).toBe("plugin.missing-install");
+    expect(found[0].message).toContain("missing-thing@some-namespace");
+  });
+
+  it("ignores plugin entries without a namespace", async () => {
+    const harness = makeHarness({
+      plugins: [
+        {
+          id: "no-namespace::project",
+          name: "no-namespace",
+          enabled: true,
+          source: "project",
+        },
+      ],
+    });
+    expect(await pluginMissingInstall(harness, { pluginsRoot })).toEqual([]);
+  });
+});
+
 describe("analyzeHarness", () => {
-  it("aggregates all rules", () => {
+  it("aggregates all rules", async () => {
     const harness = makeHarness({
       env: {},
       skills: [
@@ -200,7 +267,7 @@ describe("analyzeHarness", () => {
         },
       ],
     });
-    const found = analyzeHarness(harness, { shellEnv: {} });
+    const found = await analyzeHarness(harness, { shellEnv: {} });
     const rules = new Set(found.map((f) => f.rule));
     expect(rules).toContain("skill.duplicate-name");
     expect(rules).toContain("skill.missing-description");
@@ -208,7 +275,7 @@ describe("analyzeHarness", () => {
     expect(rules).toContain("hook.empty-command");
   });
 
-  it("returns empty for a clean harness", () => {
-    expect(analyzeHarness(makeHarness(), { shellEnv: {} })).toEqual([]);
+  it("returns empty for a clean harness", async () => {
+    expect(await analyzeHarness(makeHarness(), { shellEnv: {} })).toEqual([]);
   });
 });
