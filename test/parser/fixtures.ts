@@ -30,9 +30,7 @@ export async function makeFixture(): Promise<{
               hooks: [{ type: "command", command: "echo pre-bash" }],
             },
           ],
-          NotARealEvent: [
-            { hooks: [{ command: "noop" }] },
-          ],
+          NotARealEvent: [{ hooks: [{ command: "noop" }] }],
         },
       },
       null,
@@ -54,10 +52,20 @@ Body content.
 `,
   );
 
+  await fs.mkdir(path.join(root, ".claude", "skills", "tools-skill"), { recursive: true });
   await fs.writeFile(
-    path.join(root, ".claude", "rules", "typescript.md"),
-    "Prefer strict mode.",
+    path.join(root, ".claude", "skills", "tools-skill", "SKILL.md"),
+    `---
+name: tools-skill
+description: A skill that declares tools and references MCP servers
+tools: Read, Write, Bash(python:*), mcp__github__create_issue
+---
+
+This skill uses mcp__github__create_issue and mcp__notion__create_page in its body.
+`,
   );
+
+  await fs.writeFile(path.join(root, ".claude", "rules", "typescript.md"), "Prefer strict mode.");
 
   await fs.writeFile(
     path.join(root, ".mcp.json"),

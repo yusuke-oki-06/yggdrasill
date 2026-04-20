@@ -26,6 +26,16 @@ describe("parseSkills", () => {
     expect(example?.pluginName).toBeUndefined();
   });
 
+  it("extracts tools from frontmatter and mcpRefs from body", async () => {
+    const { skills } = await parseSkills(fx.root);
+    const tools = skills.find((s) => s.name === "tools-skill" && s.source === "project");
+    expect(tools).toBeDefined();
+    expect(tools?.tools).toEqual(
+      expect.arrayContaining(["Read", "Write", "Bash", "mcp__github__create_issue"]),
+    );
+    expect(tools?.mcpRefs).toEqual(expect.arrayContaining(["github", "notion"]));
+  });
+
   it("records pluginNamespace and pluginName for cached plugin skills", async () => {
     const userClaude = process.env.YGGDRASIL_USER_CLAUDE_DIR!;
     const pluginDir = path.join(userClaude, "plugins", "cache", "acme", "demo-plugin", "1.0.0");

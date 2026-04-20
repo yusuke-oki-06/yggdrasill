@@ -95,6 +95,8 @@ async function parseSkillFile(
     const description = typeof data.description === "string" ? data.description : "";
     const license = typeof data.license === "string" ? data.license : undefined;
     const metadata = isRecord(data.metadata) ? data.metadata : undefined;
+    const tools = extractTools(data);
+    const mcpRefs = extractMcpRefs(parsed.content);
 
     if (!name) {
       issues.push({
@@ -115,6 +117,8 @@ async function parseSkillFile(
       path: absPath,
       pluginNamespace: origin.pluginNamespace,
       pluginName: origin.pluginName,
+      tools: tools.length > 0 ? tools : undefined,
+      mcpRefs: mcpRefs.length > 0 ? mcpRefs : undefined,
     };
     return { skill, issues };
   } catch (err) {
@@ -137,4 +141,36 @@ function inferNameFromPath(absPath: string): string {
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
+}
+
+function extractTools(data: Record<string, unknown>): string[] {
+  const raw = data.tools ?? data["allowed-tools"];
+  if (raw == null) return [];
+  const tokens: string[] = [];
+  if (Array.isArray(raw)) {
+    for (const item of raw) {
+      if (typeof item === "string") tokens.push(item);
+    }
+  } else if (typeof raw === "string") {
+    tokens.push(...raw.split(/[\s,]+/));
+  }
+  const out = new Set<string>();
+  for (const tok of tokens) {
+    const trimmed = tok.trim();
+    if (!trimmed) continue;
+    const paren = trimmed.indexOf("(");
+    const normalized = paren >= 0 ? trimmed.slice(0, paren) : trimmed;
+    if (normalized) out.add(normalized);
+  }
+  return [...out];
+}
+
+function extractMcpRefs(body: string | undefined): string[] {
+  if (!body) return [];
+  const out = new Set<string>();
+  const re = /\bmcp__([a-z0-9_-]+)__([a-z0-9_-]+)/gi;
+  for (const match of body.matchAll(re)) {
+    out.add(match[1]);
+  }
+  return [...out];
 }

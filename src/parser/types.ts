@@ -24,6 +24,8 @@ export const Skill = z.object({
   metadata: z.record(z.unknown()).optional(),
   pluginNamespace: z.string().optional(),
   pluginName: z.string().optional(),
+  tools: z.array(z.string()).optional(),
+  mcpRefs: z.array(z.string()).optional(),
 });
 export type Skill = z.infer<typeof Skill>;
 
