@@ -27,17 +27,23 @@ export async function parseSkills(workspace: string): Promise<ParsedSkills> {
   return { skills, issues };
 }
 
+interface SkillOrigin {
+  pluginNamespace?: string;
+  pluginName?: string;
+}
+
 async function collectSkills(
   root: string,
   source: Source,
   skills: Skill[],
   issues: ParseIssue[],
+  origin: SkillOrigin = {},
 ): Promise<void> {
   const dirs = await listDirs(root);
   for (const dir of dirs) {
     const skillDir = path.join(root, dir);
     const skillMd = path.join(skillDir, "SKILL.md");
-    const parsed = await parseSkillFile(skillMd, source);
+    const parsed = await parseSkillFile(skillMd, source, origin);
     if (parsed.skill) skills.push(parsed.skill);
     issues.push(...parsed.issues);
   }
@@ -45,7 +51,7 @@ async function collectSkills(
   const markdowns = await listFiles(root, ".md");
   for (const md of markdowns) {
     if (md.toUpperCase() === "SKILL.MD") continue;
-    const parsed = await parseSkillFile(path.join(root, md), source);
+    const parsed = await parseSkillFile(path.join(root, md), source, origin);
     if (parsed.skill) skills.push(parsed.skill);
     issues.push(...parsed.issues);
   }
@@ -64,7 +70,10 @@ async function collectPluginSkills(skills: Skill[], issues: ParseIssue[]): Promi
       for (const version of versions) {
         const skillsDir = path.join(namespaceDir, plugin, version, "skills");
         if (!(await exists(skillsDir))) continue;
-        await collectSkills(skillsDir, "plugin", skills, issues);
+        await collectSkills(skillsDir, "plugin", skills, issues, {
+          pluginNamespace: namespace,
+          pluginName: plugin,
+        });
       }
     }
   }
@@ -73,6 +82,7 @@ async function collectPluginSkills(skills: Skill[], issues: ParseIssue[]): Promi
 async function parseSkillFile(
   absPath: string,
   source: Source,
+  origin: SkillOrigin = {},
 ): Promise<{ skill: Skill | null; issues: ParseIssue[] }> {
   const issues: ParseIssue[] = [];
   const text = await readText(absPath);
@@ -103,6 +113,8 @@ async function parseSkillFile(
       metadata,
       source,
       path: absPath,
+      pluginNamespace: origin.pluginNamespace,
+      pluginName: origin.pluginName,
     };
     return { skill, issues };
   } catch (err) {

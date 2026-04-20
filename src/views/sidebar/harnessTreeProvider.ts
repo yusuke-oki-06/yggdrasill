@@ -17,6 +17,14 @@ export type HarnessNode =
   | { kind: "category"; category: Category; label: string; count: number }
   | { kind: "sourceGroup"; category: Category; source: Source; label: string; count: number }
   | {
+      kind: "pluginGroup";
+      category: Category;
+      pluginNamespace: string;
+      pluginName: string;
+      label: string;
+      count: number;
+    }
+  | {
       kind: "leaf";
       label: string;
       description?: string;
@@ -95,6 +103,18 @@ export class HarnessTreeProvider implements vscode.TreeDataProvider<HarnessNode>
       return item;
     }
 
+    if (element.kind === "pluginGroup") {
+      const item = new vscode.TreeItem(
+        `${element.label} (${element.count})`,
+        vscode.TreeItemCollapsibleState.Collapsed,
+      );
+      item.description = element.pluginNamespace;
+      item.tooltip = `${element.pluginNamespace}/${element.pluginName}`;
+      item.iconPath = new vscode.ThemeIcon("package");
+      item.contextValue = `yggdrasil.plugin.${element.pluginNamespace}.${element.pluginName}`;
+      return item;
+    }
+
     if (element.kind === "issue") {
       const item = new vscode.TreeItem(element.label, vscode.TreeItemCollapsibleState.None);
       item.description = element.description;
@@ -135,7 +155,28 @@ export class HarnessTreeProvider implements vscode.TreeDataProvider<HarnessNode>
     }
 
     if (element.kind === "sourceGroup") {
+      if (element.category === "skills" && element.source === "plugin") {
+        const pluginGroups = groupSkillsByPlugin(harness);
+        if (pluginGroups.length >= 2) return pluginGroups;
+      }
       return leavesFor(element.category, harness, element.source);
+    }
+
+    if (element.kind === "pluginGroup") {
+      return harness.skills
+        .filter(
+          (s) =>
+            s.source === "plugin" &&
+            (s.pluginNamespace ?? "") === element.pluginNamespace &&
+            (s.pluginName ?? "") === element.pluginName,
+        )
+        .map((s) => ({
+          kind: "leaf" as const,
+          label: s.name,
+          description: s.pluginName,
+          tooltip: s.description || s.path,
+          resource: vscode.Uri.file(s.path),
+        }));
     }
 
     return [];
@@ -187,6 +228,32 @@ export class HarnessTreeProvider implements vscode.TreeDataProvider<HarnessNode>
     }
     return leavesFor(category, h);
   }
+}
+
+function groupSkillsByPlugin(h: Harness): HarnessNode[] {
+  const counts = new Map<string, { namespace: string; plugin: string; count: number }>();
+  for (const s of h.skills) {
+    if (s.source !== "plugin") continue;
+    const namespace = s.pluginNamespace ?? "";
+    const plugin = s.pluginName ?? "";
+    const key = `${namespace}::${plugin}`;
+    const existing = counts.get(key);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      counts.set(key, { namespace, plugin, count: 1 });
+    }
+  }
+  return [...counts.values()]
+    .sort((a, b) => b.count - a.count || a.plugin.localeCompare(b.plugin))
+    .map((g) => ({
+      kind: "pluginGroup" as const,
+      category: "skills" as const,
+      pluginNamespace: g.namespace,
+      pluginName: g.plugin,
+      label: g.plugin || "(unknown)",
+      count: g.count,
+    }));
 }
 
 function sourcesForCategory(category: Category, h: Harness): Map<Source, number> {

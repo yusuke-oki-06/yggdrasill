@@ -22,6 +22,8 @@ export const Skill = z.object({
   path: z.string(),
   license: z.string().optional(),
   metadata: z.record(z.unknown()).optional(),
+  pluginNamespace: z.string().optional(),
+  pluginName: z.string().optional(),
 });
 export type Skill = z.infer<typeof Skill>;
 
