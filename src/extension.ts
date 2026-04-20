@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { SessionsWatcher } from "./watchers/sessionsWatcher.js";
 import { BlueprintPanel } from "./views/blueprint/blueprintPanel.js";
 import { registerSidebar } from "./views/sidebar/index.js";
 
@@ -13,6 +14,21 @@ export function activate(context: vscode.ExtensionContext): void {
       BlueprintPanel.currentPanel()?.update(harness, sidebar.provider.getInconsistencies());
     }
   });
+
+  let sessionsWatcher: SessionsWatcher | null = null;
+  const initSessionsWatcher = (): void => {
+    sessionsWatcher?.dispose();
+    sessionsWatcher = null;
+    const folders = vscode.workspace.workspaceFolders;
+    if (folders && folders.length > 0) {
+      sessionsWatcher = new SessionsWatcher({ workspace: folders[0].uri.fsPath });
+    }
+  };
+  initSessionsWatcher();
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeWorkspaceFolders(() => initSessionsWatcher()),
+    { dispose: () => sessionsWatcher?.dispose() },
+  );
 
   context.subscriptions.push(
     vscode.commands.registerCommand("yggdrasil.hello", () => {
