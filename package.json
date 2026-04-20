@@ -43,7 +43,8 @@
       {
         "command": "yggdrasil.openBlueprint",
         "title": "Yggdrasil: Open Blueprint",
-        "category": "Yggdrasil"
+        "category": "Yggdrasil",
+        "icon": "$(symbol-structure)"
       },
       {
         "command": "yggdrasil.refresh",
@@ -55,9 +56,14 @@
     "menus": {
       "view/title": [
         {
+          "command": "yggdrasil.openBlueprint",
+          "when": "view == yggdrasil.harness",
+          "group": "navigation@1"
+        },
+        {
           "command": "yggdrasil.refresh",
           "when": "view == yggdrasil.harness",
-          "group": "navigation"
+          "group": "navigation@2"
         }
       ]
     },
@@ -107,6 +113,7 @@
     "package": "vsce package"
   },
   "devDependencies": {
+    "@types/cytoscape": "^3.21.9",
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.90.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
@@ -119,6 +126,8 @@
     "vitest": "^1.5.0"
   },
   "dependencies": {
+    "cytoscape": "^3.33.2",
+    "cytoscape-fcose": "^2.2.0",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
     "zod": "^3.23.0"

@@ -72,11 +72,19 @@ export class HarnessTreeProvider implements vscode.TreeDataProvider<HarnessNode>
   private readonly _onDidChangeTreeData = new vscode.EventEmitter<HarnessNode | undefined>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
+  private readonly _onDidChangeHarness = new vscode.EventEmitter<Harness | null>();
+  readonly onDidChangeHarness = this._onDidChangeHarness.event;
+
   private harness: Harness | null = null;
+
+  getHarness(): Harness | null {
+    return this.harness;
+  }
 
   setHarness(harness: Harness | null): void {
     this.harness = harness;
     this._onDidChangeTreeData.fire(undefined);
+    this._onDidChangeHarness.fire(harness);
   }
 
   getTreeItem(element: HarnessNode): vscode.TreeItem {
