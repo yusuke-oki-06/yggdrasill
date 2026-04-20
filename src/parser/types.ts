@@ -44,6 +44,7 @@ export const MCPServer = z.object({
   command: z.string().optional(),
   args: z.array(z.string()).optional(),
   envKeys: z.array(z.string()).default([]),
+  envRefs: z.array(z.string()).default([]),
   url: z.string().optional(),
   source: Source,
   path: z.string(),

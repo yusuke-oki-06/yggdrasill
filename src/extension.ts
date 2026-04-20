@@ -3,11 +3,14 @@ import { BlueprintPanel } from "./views/blueprint/blueprintPanel.js";
 import { registerSidebar } from "./views/sidebar/index.js";
 
 export function activate(context: vscode.ExtensionContext): void {
-  const sidebar = registerSidebar(context);
+  const diagnostics = vscode.languages.createDiagnosticCollection("yggdrasil");
+  context.subscriptions.push(diagnostics);
+
+  const sidebar = registerSidebar(context, diagnostics);
 
   sidebar.provider.onDidChangeHarness((harness) => {
     if (harness) {
-      BlueprintPanel.currentPanel()?.update(harness);
+      BlueprintPanel.currentPanel()?.update(harness, sidebar.provider.getInconsistencies());
     }
   });
 
@@ -17,7 +20,7 @@ export function activate(context: vscode.ExtensionContext): void {
     }),
     vscode.commands.registerCommand("yggdrasil.openBlueprint", () => {
       const harness = sidebar.provider.getHarness();
-      BlueprintPanel.show(context, harness);
+      BlueprintPanel.show(context, harness, sidebar.provider.getInconsistencies());
       if (!harness) sidebar.refresh();
     }),
     vscode.commands.registerCommand("yggdrasil.refresh", () => {

@@ -1,12 +1,19 @@
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
+import type { Inconsistency } from "../../analyzer/types.js";
 import { buildGraph, type GraphElements } from "../../graph/elements.js";
 import type { Harness } from "../../parser/types.js";
 
 interface WebViewMessage {
   type: "openFile" | "ready";
   path?: string;
+}
+
+interface UpdatePayload {
+  type: "update";
+  elements: GraphElements;
+  issueTargets: string[];
 }
 
 export class BlueprintPanel {
@@ -16,10 +23,14 @@ export class BlueprintPanel {
     return BlueprintPanel.current;
   }
 
-  static show(context: vscode.ExtensionContext, harness: Harness | null): BlueprintPanel {
+  static show(
+    context: vscode.ExtensionContext,
+    harness: Harness | null,
+    inconsistencies: Inconsistency[] = [],
+  ): BlueprintPanel {
     if (BlueprintPanel.current) {
       BlueprintPanel.current.panel.reveal(vscode.ViewColumn.Active);
-      if (harness) BlueprintPanel.current.update(harness);
+      if (harness) BlueprintPanel.current.update(harness, inconsistencies);
       return BlueprintPanel.current;
     }
     const panel = vscode.window.createWebviewPanel(
@@ -36,18 +47,19 @@ export class BlueprintPanel {
         ],
       },
     );
-    BlueprintPanel.current = new BlueprintPanel(context, panel, harness);
+    BlueprintPanel.current = new BlueprintPanel(context, panel, harness, inconsistencies);
     return BlueprintPanel.current;
   }
 
   private readonly disposables: vscode.Disposable[] = [];
   private ready = false;
-  private pendingElements: GraphElements | null = null;
+  private pending: UpdatePayload | null = null;
 
   private constructor(
     private readonly context: vscode.ExtensionContext,
     private readonly panel: vscode.WebviewPanel,
     harness: Harness | null,
+    inconsistencies: Inconsistency[],
   ) {
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
     this.panel.webview.onDidReceiveMessage(
@@ -56,15 +68,23 @@ export class BlueprintPanel {
       this.disposables,
     );
     void this.renderShell().then(() => {
-      if (harness) this.update(harness);
+      if (harness) this.update(harness, inconsistencies);
     });
   }
 
-  update(harness: Harness): void {
+  update(harness: Harness, inconsistencies: Inconsistency[] = []): void {
     const elements = buildGraph(harness);
-    this.pendingElements = elements;
+    const issueTargets = [
+      ...new Set(
+        inconsistencies
+          .map((inc) => inc.targetId)
+          .filter((t): t is string => typeof t === "string" && t.length > 0),
+      ),
+    ];
+    const payload: UpdatePayload = { type: "update", elements, issueTargets };
+    this.pending = payload;
     if (this.ready) {
-      void this.panel.webview.postMessage({ type: "update", elements });
+      void this.panel.webview.postMessage(payload);
     }
   }
 
@@ -114,8 +134,8 @@ export class BlueprintPanel {
   private handleMessage(msg: WebViewMessage): void {
     if (msg.type === "ready") {
       this.ready = true;
-      if (this.pendingElements) {
-        void this.panel.webview.postMessage({ type: "update", elements: this.pendingElements });
+      if (this.pending) {
+        void this.panel.webview.postMessage(this.pending);
       }
     } else if (msg.type === "openFile" && msg.path) {
       void vscode.window.showTextDocument(vscode.Uri.file(msg.path));

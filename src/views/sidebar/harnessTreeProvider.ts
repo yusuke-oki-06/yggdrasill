@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import type { Inconsistency } from "../../analyzer/types.js";
 import type { Harness, Source } from "../../parser/types.js";
 
 export type Category =
@@ -11,7 +12,8 @@ export type Category =
   | "rules"
   | "claudeMd"
   | "env"
-  | "issues";
+  | "issues"
+  | "inconsistencies";
 
 export type HarnessNode =
   | { kind: "category"; category: Category; label: string; count: number }
@@ -43,7 +45,8 @@ const CATEGORY_LABEL: Record<Category, string> = {
   rules: "Rules",
   claudeMd: "CLAUDE.md / AGENTS.md",
   env: "Environment",
-  issues: "Issues",
+  issues: "Parse Issues",
+  inconsistencies: "Inconsistencies",
 };
 
 const CATEGORY_BY_SOURCE: ReadonlySet<Category> = new Set<Category>([
@@ -76,15 +79,26 @@ export class HarnessTreeProvider implements vscode.TreeDataProvider<HarnessNode>
   readonly onDidChangeHarness = this._onDidChangeHarness.event;
 
   private harness: Harness | null = null;
+  private inconsistencies: Inconsistency[] = [];
 
   getHarness(): Harness | null {
     return this.harness;
   }
 
+  getInconsistencies(): Inconsistency[] {
+    return this.inconsistencies;
+  }
+
   setHarness(harness: Harness | null): void {
     this.harness = harness;
+    if (!harness) this.inconsistencies = [];
     this._onDidChangeTreeData.fire(undefined);
     this._onDidChangeHarness.fire(harness);
+  }
+
+  setInconsistencies(inconsistencies: Inconsistency[]): void {
+    this.inconsistencies = inconsistencies;
+    this._onDidChangeTreeData.fire(undefined);
   }
 
   getTreeItem(element: HarnessNode): vscode.TreeItem {
@@ -159,6 +173,14 @@ export class HarnessTreeProvider implements vscode.TreeDataProvider<HarnessNode>
     }
 
     if (element.kind === "category") {
+      if (element.category === "inconsistencies") {
+        return this.inconsistencies.map((inc) => ({
+          kind: "issue" as const,
+          label: `${inc.severity}: ${inc.message}`,
+          description: inc.rule,
+          tooltip: inc.path,
+        }));
+      }
       return this.childrenForCategory(element.category, harness);
     }
 
@@ -212,6 +234,8 @@ export class HarnessTreeProvider implements vscode.TreeDataProvider<HarnessNode>
         return Object.keys(h.env).length;
       case "issues":
         return h.issues.length;
+      case "inconsistencies":
+        return this.inconsistencies.length;
     }
   }
 
@@ -376,6 +400,8 @@ function leavesFor(category: Category, h: Harness, filter?: Source): HarnessNode
         description: issue.path ? shortenPath(issue.path) : undefined,
         tooltip: issue.path,
       }));
+    case "inconsistencies":
+      return [];
   }
 }
 
@@ -401,6 +427,8 @@ function iconForCategory(category: Category): string {
       return "settings-gear";
     case "issues":
       return "warning";
+    case "inconsistencies":
+      return "alert";
   }
 }
 

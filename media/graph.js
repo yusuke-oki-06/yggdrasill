@@ -81,6 +81,14 @@
       style: { opacity: 0.12, "text-opacity": 0.05 },
     },
     {
+      selector: ".has-issue",
+      style: {
+        "border-color": "#ef4444",
+        "border-width": 3,
+        "border-style": "solid",
+      },
+    },
+    {
       selector: ":selected",
       style: {
         "border-color": "#ffd166",
@@ -153,7 +161,15 @@
       cy.add(msg.elements.edges);
       layout();
       cy.fit(undefined, 30);
-      stats.textContent = `${msg.elements.nodes.length} nodes · ${msg.elements.edges.length} edges`;
+      const issueTargets = new Set(msg.issueTargets || []);
+      cy.nodes().forEach((n) => {
+        if (issueTargets.has(n.id())) n.addClass("has-issue");
+        else n.removeClass("has-issue");
+      });
+      const issueCount = issueTargets.size;
+      stats.textContent =
+        `${msg.elements.nodes.length} nodes · ${msg.elements.edges.length} edges` +
+        (issueCount ? ` · ${issueCount} ⚠` : "");
       applyFilter(search.value);
     }
   });

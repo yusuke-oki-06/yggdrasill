@@ -43,15 +43,18 @@ export async function parseMcp(workspace: string): Promise<ParsedMcp> {
       continue;
     }
     for (const [name, raw] of Object.entries(data.mcpServers ?? {})) {
-      const type = raw.type && SERVER_TYPES.has(raw.type) ? (raw.type as "stdio" | "http" | "sse") : "stdio";
+      const type =
+        raw.type && SERVER_TYPES.has(raw.type) ? (raw.type as "stdio" | "http" | "sse") : "stdio";
       const envKeys = new Set<string>();
+      const envRefs = new Set<string>();
       for (const [k, v] of Object.entries(raw.env ?? {})) {
         envKeys.add(k);
-        extractEnvVarKeys(v).forEach((key) => envKeys.add(key));
+        extractEnvVarKeys(v).forEach((key) => envRefs.add(key));
       }
-      extractEnvVarKeys(raw.command).forEach((key) => envKeys.add(key));
-      (raw.args ?? []).forEach((a) => extractEnvVarKeys(a).forEach((key) => envKeys.add(key)));
-      extractEnvVarKeys(raw.url).forEach((key) => envKeys.add(key));
+      extractEnvVarKeys(raw.command).forEach((key) => envRefs.add(key));
+      (raw.args ?? []).forEach((a) => extractEnvVarKeys(a).forEach((key) => envRefs.add(key)));
+      extractEnvVarKeys(raw.url).forEach((key) => envRefs.add(key));
+      for (const ref of envRefs) envKeys.add(ref);
 
       mcpServers.push({
         id: id(name, c.source),
@@ -61,6 +64,7 @@ export async function parseMcp(workspace: string): Promise<ParsedMcp> {
         args: raw.args,
         url: raw.url,
         envKeys: [...envKeys],
+        envRefs: [...envRefs],
         source: c.source,
         path: c.abs,
       });

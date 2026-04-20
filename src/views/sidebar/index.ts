@@ -1,4 +1,6 @@
 import * as vscode from "vscode";
+import { analyzeHarness } from "../../analyzer/index.js";
+import type { Inconsistency } from "../../analyzer/types.js";
 import { parseHarness, type Harness } from "../../parser/index.js";
 import { HarnessTreeProvider } from "./harnessTreeProvider.js";
 
@@ -9,7 +11,10 @@ export interface SidebarHandle {
   refresh(): void;
 }
 
-export function registerSidebar(context: vscode.ExtensionContext): SidebarHandle {
+export function registerSidebar(
+  context: vscode.ExtensionContext,
+  diagnostics: vscode.DiagnosticCollection,
+): SidebarHandle {
   const provider = new HarnessTreeProvider();
   const treeView = vscode.window.createTreeView("yggdrasil.harness", {
     treeDataProvider: provider,
@@ -17,7 +22,7 @@ export function registerSidebar(context: vscode.ExtensionContext): SidebarHandle
   });
   context.subscriptions.push(treeView);
 
-  const refresher = new DebouncedRefresher(provider, REFRESH_DEBOUNCE_MS);
+  const refresher = new DebouncedRefresher(provider, diagnostics, REFRESH_DEBOUNCE_MS);
   context.subscriptions.push({ dispose: () => refresher.dispose() });
 
   refresher.requestRefresh();
@@ -53,6 +58,7 @@ class DebouncedRefresher {
 
   constructor(
     private readonly provider: HarnessTreeProvider,
+    private readonly diagnostics: vscode.DiagnosticCollection,
     private readonly delay: number,
   ) {}
 
@@ -67,6 +73,7 @@ class DebouncedRefresher {
     const folders = vscode.workspace.workspaceFolders;
     if (!folders || folders.length === 0) {
       this.provider.setHarness(null);
+      this.diagnostics.clear();
       return;
     }
     const memoryRoot = vscode.workspace
@@ -77,17 +84,67 @@ class DebouncedRefresher {
       const harness: Harness = await parseHarness(workspace, {
         memoryRoot: memoryRoot && memoryRoot.length > 0 ? memoryRoot : undefined,
       });
-      if (!this.disposed) this.provider.setHarness(harness);
+      if (this.disposed) return;
+      const inconsistencies = analyzeHarness(harness);
+      this.provider.setHarness(harness);
+      this.provider.setInconsistencies(inconsistencies);
+      publishDiagnostics(this.diagnostics, workspace, inconsistencies);
     } catch (err) {
       vscode.window.showErrorMessage(
         `Yggdrasil: failed to parse harness: ${(err as Error).message}`,
       );
-      if (!this.disposed) this.provider.setHarness(null);
+      if (!this.disposed) {
+        this.provider.setHarness(null);
+        this.diagnostics.clear();
+      }
     }
   }
 
   dispose(): void {
     this.disposed = true;
     if (this.timer) clearTimeout(this.timer);
+  }
+}
+
+function publishDiagnostics(
+  collection: vscode.DiagnosticCollection,
+  workspace: string,
+  inconsistencies: Inconsistency[],
+): void {
+  collection.clear();
+  const byPath = new Map<string, vscode.Diagnostic[]>();
+  const fallback = vscode.Uri.file(workspace).with({ fragment: "yggdrasil" });
+
+  for (const inc of inconsistencies) {
+    const diag = new vscode.Diagnostic(
+      new vscode.Range(0, 0, 0, 0),
+      inc.message,
+      toSeverity(inc.severity),
+    );
+    diag.source = "Yggdrasil";
+    diag.code = inc.rule;
+    const key = inc.path ?? fallback.toString();
+    const arr = byPath.get(key);
+    if (arr) {
+      arr.push(diag);
+    } else {
+      byPath.set(key, [diag]);
+    }
+  }
+
+  for (const [key, diags] of byPath) {
+    const uri = key === fallback.toString() ? fallback : vscode.Uri.file(key);
+    collection.set(uri, diags);
+  }
+}
+
+function toSeverity(severity: Inconsistency["severity"]): vscode.DiagnosticSeverity {
+  switch (severity) {
+    case "error":
+      return vscode.DiagnosticSeverity.Error;
+    case "warning":
+      return vscode.DiagnosticSeverity.Warning;
+    case "info":
+      return vscode.DiagnosticSeverity.Information;
   }
 }
