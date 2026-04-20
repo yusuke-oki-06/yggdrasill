@@ -1,0 +1,111 @@
+{
+  "name": "yggdrasil",
+  "displayName": "Yggdrasil",
+  "description": "Visualize Claude Code harness — skills, hooks, tools, MCP, memory, settings — in one graph. Multi-project blueprint viewer with inconsistency detection and input-required notifications.",
+  "version": "0.0.1",
+  "license": "MIT",
+  "publisher": "koori",
+  "author": {
+    "name": "yusuke"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/koori/yggdrasil"
+  },
+  "engines": {
+    "vscode": "^1.90.0",
+    "node": ">=20"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "claude-code",
+    "harness",
+    "skills",
+    "hooks",
+    "mcp",
+    "observability",
+    "blueprint"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "yggdrasil.hello",
+        "title": "Yggdrasil: Hello",
+        "category": "Yggdrasil"
+      },
+      {
+        "command": "yggdrasil.openBlueprint",
+        "title": "Yggdrasil: Open Blueprint",
+        "category": "Yggdrasil"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "yggdrasil",
+          "title": "Yggdrasil",
+          "icon": "media/yggdrasil-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "yggdrasil": [
+        {
+          "id": "yggdrasil.harness",
+          "name": "Harness",
+          "icon": "media/yggdrasil-icon.svg",
+          "contextualTitle": "Yggdrasil Harness"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Yggdrasil",
+      "properties": {
+        "yggdrasil.notifications.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a notification when a Claude Code session requires user input (AskUserQuestion / ExitPlanMode / permission request)."
+        },
+        "yggdrasil.parser.memoryRoot": {
+          "type": "string",
+          "default": "",
+          "description": "Optional absolute path to a Claude Code memory directory. When empty, Yggdrasil infers it from the current workspace."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "node esbuild.config.mjs --production",
+    "dev": "node esbuild.config.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.90.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@vscode/vsce": "^3.0.0",
+    "esbuild": "^0.23.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.5.0"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "js-yaml": "^4.1.0",
+    "zod": "^3.23.0"
+  }
+}
