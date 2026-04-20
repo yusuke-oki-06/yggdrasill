@@ -13,6 +13,8 @@
     claudeMd: "#ec4899",
     env: "#84cc16",
     plugin: "#14b8a6",
+    tool: "#22d3ee",
+    configFile: "#facc15",
   };
 
   const KIND_SHAPE = {
@@ -27,6 +29,8 @@
     claudeMd: "round-rectangle",
     env: "tag",
     plugin: "round-rectangle",
+    tool: "ellipse",
+    configFile: "round-rectangle",
   };
 
   if (window.cytoscape && window.cytoscapeFcose) {
@@ -74,6 +78,25 @@
         color: "rgba(180,180,180,0.8)",
         "text-background-opacity": 0,
         "text-rotation": "autorotate",
+      },
+    },
+    {
+      selector: "edge[kind = 'ownership']",
+      style: {
+        width: 0.6,
+        "line-color": "rgba(150,150,150,0.22)",
+        "target-arrow-color": "rgba(150,150,150,0.22)",
+        "text-opacity": 0,
+      },
+    },
+    {
+      selector: "edge[kind = 'relationship']",
+      style: {
+        width: 1.6,
+        "line-color": "#8b5cf6",
+        "target-arrow-color": "#8b5cf6",
+        color: "#c4b5fd",
+        "font-size": 9,
       },
     },
     {
@@ -167,8 +190,10 @@
         else n.removeClass("has-issue");
       });
       const issueCount = issueTargets.size;
+      const relCount = msg.elements.edges.filter((e) => e.data.kind === "relationship").length;
       stats.textContent =
         `${msg.elements.nodes.length} nodes · ${msg.elements.edges.length} edges` +
+        (relCount ? ` · ${relCount} rel` : "") +
         (issueCount ? ` · ${issueCount} ⚠` : "");
       applyFilter(search.value);
     }

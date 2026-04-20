@@ -1,4 +1,6 @@
+import * as path from "node:path";
 import type { Harness } from "../parser/types.js";
+import { buildRelationships } from "./relationships.js";
 
 export type NodeKind =
   | "workspace"
@@ -11,7 +13,11 @@ export type NodeKind =
   | "rule"
   | "claudeMd"
   | "env"
-  | "pluginGroup";
+  | "pluginGroup"
+  | "tool"
+  | "configFile";
+
+export type EdgeKind = "ownership" | "relationship";
 
 export interface GraphNode {
   data: {
@@ -31,6 +37,7 @@ export interface GraphEdge {
     source: string;
     target: string;
     relation: string;
+    kind: EdgeKind;
   };
 }
 
@@ -192,7 +199,52 @@ export function buildGraph(harness: Harness, options: BuildOptions = {}): GraphE
     edges.push(edgeFor(workspaceId, id, "documents"));
   }
 
+  appendRelationships(harness, nodes, edges, seen);
+
   return { nodes, edges };
+}
+
+function appendRelationships(
+  harness: Harness,
+  nodes: GraphNode[],
+  edges: GraphEdge[],
+  seen: Set<string>,
+): void {
+  const push = (node: GraphNode): void => {
+    if (seen.has(node.data.id)) return;
+    seen.add(node.data.id);
+    nodes.push(node);
+  };
+
+  const result = buildRelationships(harness);
+
+  for (const tool of result.toolNodes) {
+    push({
+      data: {
+        id: nodeId("tool", tool),
+        label: tool,
+        kind: "tool",
+      },
+    });
+  }
+
+  for (const filePath of result.configFileNodes) {
+    push({
+      data: {
+        id: nodeId("configFile", filePath),
+        label: path.basename(filePath),
+        kind: "configFile",
+        path: filePath,
+        description: path.basename(path.dirname(filePath)),
+      },
+    });
+  }
+
+  for (const edge of result.edges) {
+    if (seen.has(edge.data.id)) continue;
+    seen.add(edge.data.id);
+    edges.push(edge);
+  }
 }
 
 function addSkills(
@@ -229,7 +281,10 @@ function addSkills(
   if (!includePluginSkills) return;
 
   const pluginSkills = harness.skills.filter((s) => s.source === "plugin");
-  const byPlugin = new Map<string, { namespace: string; plugin: string; items: typeof pluginSkills }>();
+  const byPlugin = new Map<
+    string,
+    { namespace: string; plugin: string; items: typeof pluginSkills }
+  >();
   for (const s of pluginSkills) {
     const namespace = s.pluginNamespace ?? "";
     const plugin = s.pluginName ?? "";
@@ -275,13 +330,19 @@ function addSkills(
   }
 }
 
-function edgeFor(source: string, target: string, relation: string): GraphEdge {
+function edgeFor(
+  source: string,
+  target: string,
+  relation: string,
+  kind: EdgeKind = "ownership",
+): GraphEdge {
   return {
     data: {
       id: `${source}->${target}::${relation}`,
       source,
       target,
       relation,
+      kind,
     },
   };
 }

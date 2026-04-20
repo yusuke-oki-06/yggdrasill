@@ -41,6 +41,30 @@ describe("buildGraph", () => {
       (e) => e.data.source === mcp!.data.id && e.data.relation === "needs-env",
     );
     expect(envEdge).toBeDefined();
+
+    expect(
+      graph.edges.every((e) => e.data.kind === "ownership" || e.data.kind === "relationship"),
+    ).toBe(true);
+    expect(envEdge!.data.kind).toBe("ownership");
+  });
+
+  it("merges relationship edges and synthesizes tool/configFile nodes", async () => {
+    const harness = await parseHarness(fx.root);
+    const graph = buildGraph(harness);
+
+    const toolNode = graph.nodes.find((n) => n.data.kind === "tool" && n.data.label === "Read");
+    expect(toolNode).toBeDefined();
+
+    const requiresEdges = graph.edges.filter(
+      (e) => e.data.relation === "requires-tool" && e.data.kind === "relationship",
+    );
+    expect(requiresEdges.length).toBeGreaterThan(0);
+    expect(requiresEdges.some((e) => e.data.target === toolNode!.data.id)).toBe(true);
+
+    const referencesEdge = graph.edges.find(
+      (e) => e.data.relation === "references" && e.data.kind === "relationship",
+    );
+    expect(referencesEdge).toBeDefined();
   });
 
   it("groups plugin skills under pluginGroup parents", async () => {
