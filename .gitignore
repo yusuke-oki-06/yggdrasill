@@ -20,7 +20,7 @@ coverage/
 .claude/worktrees/
 
 # Serena
-.serena/cache/
+.serena/
 .serena-home/
 
 # IDE

@@ -44,8 +44,23 @@
         "command": "yggdrasil.openBlueprint",
         "title": "Yggdrasil: Open Blueprint",
         "category": "Yggdrasil"
+      },
+      {
+        "command": "yggdrasil.refresh",
+        "title": "Yggdrasil: Refresh Harness",
+        "category": "Yggdrasil",
+        "icon": "$(refresh)"
       }
     ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "yggdrasil.refresh",
+          "when": "view == yggdrasil.harness",
+          "group": "navigation"
+        }
+      ]
+    },
     "viewsContainers": {
       "activitybar": [
         {
