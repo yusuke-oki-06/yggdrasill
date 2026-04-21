@@ -119,6 +119,50 @@ body,
   text-transform: lowercase;
 }
 
+.category-group {
+  width: 100%;
+  height: 100%;
+  border: 1.5px dashed;
+  border-radius: 16px;
+  position: relative;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.category-group .cg-header {
+  position: absolute;
+  top: 8px;
+  left: 14px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 11px;
+  pointer-events: auto;
+  user-select: none;
+}
+
+.category-group .cg-label {
+  font-size: 12px;
+}
+
+.category-group .cg-count {
+  background: rgba(255, 255, 255, 0.12);
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.category-group .cg-layer {
+  font-size: 10px;
+  opacity: 0.65;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
 .harness-node {
   position: relative;
   display: flex;

@@ -10,9 +10,10 @@ import {
   type NodeMouseHandler,
 } from "@xyflow/react";
 import { useCallback, useEffect, useRef, useState, type JSX } from "react";
+import { CategoryGroupNode, type CategoryGroupData } from "./components/CategoryGroupNode.js";
 import { HarnessNode, type HarnessNodeData } from "./components/HarnessNode.js";
 import { Toolbar, type ToolbarFilters } from "./components/Toolbar.js";
-import { fallbackGrid, layoutNodes } from "./layout.js";
+import { fallbackGrid, layoutNodes, LOADING_LAYER } from "./layout.js";
 import type {
   EdgeData,
   FromExtensionMessage,
@@ -31,7 +32,12 @@ const RELATION_COLOR: Record<string, string> = {
   "declared-in": "#94a3b8",
 };
 
-const NODE_TYPES = { harness: HarnessNode };
+const NODE_TYPES = { harness: HarnessNode, categoryGroup: CategoryGroupNode };
+
+// Kinds that should NOT be wrapped in a category group (already singleton or
+// kept independent so cross-category edges read cleanly).
+const SOLO_KINDS = new Set<string>(["workspace"]);
+const MIN_GROUP_SIZE = 2;
 
 interface AppProps {
   vscode: VsCodeApi;
@@ -56,7 +62,7 @@ function Inner({ vscode }: AppProps): JSX.Element {
     showPerms: false,
     layout: "RIGHT",
   });
-  const [graphNodes, setGraphNodes] = useState<Node<HarnessNodeData>[]>([]);
+  const [graphNodes, setGraphNodes] = useState<Node<HarnessNodeData | CategoryGroupData>[]>([]);
   const [graphEdges, setGraphEdges] = useState<Edge[]>([]);
   const [stats, setStats] = useState("");
   const [layoutBusy, setLayoutBusy] = useState(false);
@@ -102,12 +108,55 @@ function Inner({ vscode }: AppProps): JSX.Element {
   useEffect(() => {
     let cancelled = false;
     const q = filters.query.trim().toLowerCase();
-    const baseNodes: Node<HarnessNodeData>[] = rawNodes.map((data) => ({
+
+    const entityNodes: Node<HarnessNodeData>[] = rawNodes.map((data) => ({
       id: data.id,
       type: "harness",
       position: { x: 0, y: 0 },
       data: { payload: data, hasIssue: issueIds.has(data.id) },
     }));
+
+    // Group entities by kind; emit categoryGroup parents for each kind that
+    // has >=2 nodes and isn't on the SOLO list, then attach parentId to
+    // children. ELK + react-flow render parents as labeled containers.
+    const byKind = new Map<string, Node<HarnessNodeData>[]>();
+    for (const n of entityNodes) {
+      const k = n.data.payload.kind;
+      const arr = byKind.get(k) ?? [];
+      arr.push(n);
+      byKind.set(k, arr);
+    }
+
+    const groupNodes: Node<CategoryGroupData>[] = [];
+    const wiredEntities: Node<HarnessNodeData>[] = [];
+    for (const [kind, list] of byKind) {
+      if (SOLO_KINDS.has(kind) || list.length < MIN_GROUP_SIZE) {
+        wiredEntities.push(...list);
+        continue;
+      }
+      const groupId = `categoryGroup::${kind}`;
+      groupNodes.push({
+        id: groupId,
+        type: "categoryGroup",
+        position: { x: 0, y: 0 },
+        data: {
+          kind,
+          count: list.length,
+          layer: LOADING_LAYER[kind] ?? 3,
+        },
+        zIndex: -1,
+      });
+      for (const e of list) {
+        wiredEntities.push({ ...e, parentId: groupId, extent: "parent" });
+      }
+    }
+
+    // Parents must come before their children in react-flow's array
+    const baseNodes: Node<HarnessNodeData | CategoryGroupData>[] = [
+      ...groupNodes,
+      ...wiredEntities,
+    ];
+
     const baseEdges: Edge[] = rawEdges.map((data) => ({
       id: data.id,
       source: data.source,
@@ -133,7 +182,7 @@ function Inner({ vscode }: AppProps): JSX.Element {
     }
 
     setLayoutBusy(true);
-    const apply = (positioned: Node<HarnessNodeData>[]): void => {
+    const apply = (positioned: Node<HarnessNodeData | CategoryGroupData>[]): void => {
       if (cancelled) return;
       let finalNodes = positioned;
       const finalEdges = baseEdges;
@@ -141,7 +190,8 @@ function Inner({ vscode }: AppProps): JSX.Element {
       if (q.length > 0) {
         const matched = new Set<string>();
         for (const n of finalNodes) {
-          const data = n.data.payload;
+          if (n.type !== "harness") continue;
+          const data = (n.data as HarnessNodeData).payload;
           if (
             data.label.toLowerCase().includes(q) ||
             (data.description ?? "").toLowerCase().includes(q)
@@ -156,7 +206,9 @@ function Inner({ vscode }: AppProps): JSX.Element {
           }
         }
         finalNodes = finalNodes.map((n) =>
-          matched.has(n.id) ? n : { ...n, style: { ...(n.style ?? {}), opacity: 0.18 } },
+          n.type === "categoryGroup" || matched.has(n.id)
+            ? n
+            : { ...n, style: { ...(n.style ?? {}), opacity: 0.18 } },
         );
         for (const e of finalEdges) {
           if (!matched.has(e.source) || !matched.has(e.target)) {
@@ -165,12 +217,14 @@ function Inner({ vscode }: AppProps): JSX.Element {
         }
       }
 
+      const entityCount = finalNodes.filter((n) => n.type === "harness").length;
+      const groupCount = finalNodes.filter((n) => n.type === "categoryGroup").length;
       const relCount = finalEdges.filter((e) => e.animated).length;
       const issueCount = issueIds.size;
       setGraphNodes(finalNodes);
       setGraphEdges(finalEdges);
       setStats(
-        `${finalNodes.length} nodes · ${finalEdges.length} edges` +
+        `${entityCount} nodes · ${groupCount} groups · ${finalEdges.length} edges` +
           (relCount ? ` · ${relCount} rel` : "") +
           (issueCount ? ` · ${issueCount} ⚠` : ""),
       );
@@ -188,6 +242,7 @@ function Inner({ vscode }: AppProps): JSX.Element {
 
   const onNodeClick: NodeMouseHandler = useCallback(
     (_, node) => {
+      if (node.type !== "harness") return;
       const data = node.data as HarnessNodeData | undefined;
       const path = data?.payload?.path;
       if (path) post(vscode, { type: "openFile", path });
@@ -232,6 +287,10 @@ function Inner({ vscode }: AppProps): JSX.Element {
             pannable
             maskColor="rgba(15,23,42,0.65)"
             nodeColor={(n) => {
+              if (n.type === "categoryGroup") {
+                const kind = (n.data as CategoryGroupData | undefined)?.kind ?? "skill";
+                return KIND_MINIMAP[kind] ?? "#888";
+              }
               const kind = (n.data as HarnessNodeData | undefined)?.payload?.kind ?? "skill";
               return KIND_MINIMAP[kind] ?? "#888";
             }}
