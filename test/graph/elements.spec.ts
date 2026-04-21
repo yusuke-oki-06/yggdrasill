@@ -90,7 +90,7 @@ describe("buildGraph", () => {
         pluginName: "demo-plugin",
       },
     );
-    const graph = buildGraph(harness);
+    const graph = buildGraph(harness, { includePluginSkills: true });
 
     const group = graph.nodes.find((n) => n.data.kind === "pluginGroup");
     expect(group).toBeDefined();
@@ -99,5 +99,30 @@ describe("buildGraph", () => {
     const groupChildren = graph.nodes.filter((n) => n.data.parent === group!.data.id);
     expect(groupChildren.length).toBeGreaterThanOrEqual(2);
     expect(groupChildren.every((c) => c.data.kind === "skill")).toBe(true);
+  });
+
+  it("hides plugin skill leaves by default but keeps the pluginGroup node", async () => {
+    const harness = await parseHarness(fx.root);
+    harness.skills.push({
+      id: "p1",
+      name: "alpha",
+      description: "",
+      source: "plugin",
+      path: "/tmp/alpha/SKILL.md",
+      pluginNamespace: "acme",
+      pluginName: "demo-plugin",
+    });
+    const graph = buildGraph(harness);
+    const group = graph.nodes.find((n) => n.data.kind === "pluginGroup");
+    expect(group).toBeDefined();
+    expect(graph.nodes.some((n) => n.data.id === "skill::p1")).toBe(false);
+  });
+
+  it("does not place ownership children under a workspace compound", async () => {
+    const harness = await parseHarness(fx.root);
+    const graph = buildGraph(harness);
+    const workspace = graph.nodes.find((n) => n.data.kind === "workspace")!;
+    const childUnderWorkspace = graph.nodes.find((n) => n.data.parent === workspace.data.id);
+    expect(childUnderWorkspace).toBeUndefined();
   });
 });

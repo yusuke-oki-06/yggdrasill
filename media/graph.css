@@ -49,6 +49,16 @@ body {
   border-radius: 4px;
 }
 
+.toolbar .toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
 #stats {
   color: var(--muted);
   font-variant-numeric: tabular-nums;

@@ -45,24 +45,30 @@
         shape: (ele) => KIND_SHAPE[ele.data("kind")] || "ellipse",
         label: "data(label)",
         color: "#ffffff",
-        "text-outline-color": "rgba(0,0,0,0.6)",
+        "text-outline-color": "rgba(0,0,0,0.7)",
         "text-outline-width": 2,
-        "font-size": 10,
-        width: 26,
-        height: 26,
-        "text-wrap": "ellipsis",
-        "text-max-width": "90px",
+        "font-size": 13,
+        width: 52,
+        height: 52,
+        "text-wrap": "wrap",
+        "text-max-width": "140px",
         "text-valign": "center",
         "text-halign": "center",
+        "border-width": 1,
+        "border-color": "rgba(0,0,0,0.25)",
       },
     },
     {
       selector: "node[kind = 'workspace']",
-      style: { width: 44, height: 44, "font-size": 12 },
+      style: { width: 96, height: 96, "font-size": 18 },
     },
     {
       selector: "node[kind = 'pluginGroup']",
-      style: { width: 32, height: 32, "font-size": 11 },
+      style: { width: 72, height: 72, "font-size": 14 },
+    },
+    {
+      selector: "node[kind = 'env'], node[kind = 'tool']",
+      style: { width: 38, height: 38, "font-size": 11 },
     },
     {
       selector: "edge",
@@ -124,7 +130,9 @@
     container: document.getElementById("cy"),
     elements: [],
     style,
-    wheelSensitivity: 0.2,
+    wheelSensitivity: 0.4,
+    minZoom: 0.1,
+    maxZoom: 4,
   });
 
   cy.on("tap", "node", (evt) => {
@@ -137,9 +145,15 @@
   const search = document.getElementById("search");
   const stats = document.getElementById("stats");
   const refit = document.getElementById("refit");
+  const showPlugins = document.getElementById("show-plugins");
 
   search.addEventListener("input", () => applyFilter(search.value));
-  refit.addEventListener("click", () => cy.animate({ fit: { padding: 30 }, duration: 250 }));
+  refit.addEventListener("click", () => cy.animate({ fit: { padding: 60 }, duration: 250 }));
+  if (showPlugins) {
+    showPlugins.addEventListener("change", () => {
+      vscode.postMessage({ type: "setIncludePluginSkills", value: showPlugins.checked });
+    });
+  }
 
   function applyFilter(term) {
     const q = term.trim().toLowerCase();
@@ -166,12 +180,15 @@
           animate: false,
           quality: "default",
           randomize: true,
-          idealEdgeLength: 90,
-          nodeRepulsion: 6000,
-          gravity: 0.25,
-          nestingFactor: 0.9,
+          idealEdgeLength: 160,
+          nodeRepulsion: 14000,
+          gravity: 0.3,
+          gravityRangeCompound: 1.2,
+          nodeSeparation: 120,
+          nestingFactor: 0.6,
+          padding: 60,
         }
-      : { name: "cose", animate: false };
+      : { name: "cose", animate: false, nodeRepulsion: 12000, idealEdgeLength: 160 };
     cy.layout(layoutOpts).run();
   }
 
@@ -183,7 +200,7 @@
       cy.add(msg.elements.nodes);
       cy.add(msg.elements.edges);
       layout();
-      cy.fit(undefined, 30);
+      cy.fit(undefined, 60);
       const issueTargets = new Set(msg.issueTargets || []);
       cy.nodes().forEach((n) => {
         if (issueTargets.has(n.id())) n.addClass("has-issue");

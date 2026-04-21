@@ -53,7 +53,7 @@ export interface BuildOptions {
 const MAX_PLUGIN_SKILLS_PER_PLUGIN = 6;
 
 export function buildGraph(harness: Harness, options: BuildOptions = {}): GraphElements {
-  const includePluginSkills = options.includePluginSkills ?? true;
+  const includePluginSkills = options.includePluginSkills ?? false;
 
   const nodes: GraphNode[] = [];
   const edges: GraphEdge[] = [];
@@ -84,7 +84,6 @@ export function buildGraph(harness: Harness, options: BuildOptions = {}): GraphE
         kind: "claudeMd",
         source: doc.source,
         path: doc.path,
-        parent: workspaceId,
       },
     });
     edges.push(edgeFor(workspaceId, id, "defines"));
@@ -99,7 +98,6 @@ export function buildGraph(harness: Harness, options: BuildOptions = {}): GraphE
         kind: "plugin",
         source: plugin.source,
         description: plugin.enabled ? "enabled" : "disabled",
-        parent: workspaceId,
       },
     });
     edges.push(edgeFor(workspaceId, id, "enables"));
@@ -117,7 +115,6 @@ export function buildGraph(harness: Harness, options: BuildOptions = {}): GraphE
         source: mcp.source,
         description: mcp.type,
         path: mcp.path,
-        parent: workspaceId,
       },
     });
     edges.push(edgeFor(workspaceId, id, "connects"));
@@ -147,7 +144,6 @@ export function buildGraph(harness: Harness, options: BuildOptions = {}): GraphE
           ? `${hook.matcher} · ${truncate(hook.command)}`
           : truncate(hook.command),
         path: hook.path,
-        parent: workspaceId,
       },
     });
     edges.push(edgeFor(workspaceId, id, "fires"));
@@ -163,7 +159,6 @@ export function buildGraph(harness: Harness, options: BuildOptions = {}): GraphE
         source: mem.source,
         description: mem.type,
         path: mem.path,
-        parent: workspaceId,
       },
     });
     edges.push(edgeFor(workspaceId, id, "remembers"));
@@ -178,7 +173,6 @@ export function buildGraph(harness: Harness, options: BuildOptions = {}): GraphE
         kind: "permission",
         source: perm.source,
         description: perm.mode,
-        parent: workspaceId,
       },
     });
     edges.push(edgeFor(workspaceId, id, perm.mode));
@@ -193,7 +187,6 @@ export function buildGraph(harness: Harness, options: BuildOptions = {}): GraphE
         kind: "rule",
         source: rule.source,
         path: rule.path,
-        parent: workspaceId,
       },
     });
     edges.push(edgeFor(workspaceId, id, "documents"));
@@ -242,6 +235,7 @@ function appendRelationships(
 
   for (const edge of result.edges) {
     if (seen.has(edge.data.id)) continue;
+    if (!seen.has(edge.data.source) || !seen.has(edge.data.target)) continue;
     seen.add(edge.data.id);
     edges.push(edge);
   }
@@ -272,13 +266,10 @@ function addSkills(
         source: skill.source,
         description: truncate(skill.description, 120),
         path: skill.path,
-        parent: workspaceId,
       },
     });
     edges.push(edgeFor(workspaceId, id, "provides"));
   }
-
-  if (!includePluginSkills) return;
 
   const pluginSkills = harness.skills.filter((s) => s.source === "plugin");
   const byPlugin = new Map<
@@ -306,10 +297,11 @@ function addSkills(
         kind: "pluginGroup",
         source: "plugin",
         description: `${namespace} · ${items.length} skill${items.length > 1 ? "s" : ""}`,
-        parent: workspaceId,
       },
     });
     edges.push(edgeFor(workspaceId, groupId, "hosts"));
+
+    if (!includePluginSkills) continue;
 
     const limited = items.slice(0, MAX_PLUGIN_SKILLS_PER_PLUGIN);
     for (const skill of limited) {

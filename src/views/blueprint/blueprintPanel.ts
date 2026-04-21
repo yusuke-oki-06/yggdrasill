@@ -6,8 +6,9 @@ import { buildGraph, type GraphElements } from "../../graph/elements.js";
 import type { Harness } from "../../parser/types.js";
 
 interface WebViewMessage {
-  type: "openFile" | "ready";
+  type: "openFile" | "ready" | "setIncludePluginSkills";
   path?: string;
+  value?: boolean;
 }
 
 interface UpdatePayload {
@@ -54,6 +55,9 @@ export class BlueprintPanel {
   private readonly disposables: vscode.Disposable[] = [];
   private ready = false;
   private pending: UpdatePayload | null = null;
+  private latestHarness: Harness | null = null;
+  private latestInconsistencies: Inconsistency[] = [];
+  private includePluginSkills = false;
 
   private constructor(
     private readonly context: vscode.ExtensionContext,
@@ -73,10 +77,19 @@ export class BlueprintPanel {
   }
 
   update(harness: Harness, inconsistencies: Inconsistency[] = []): void {
-    const elements = buildGraph(harness);
+    this.latestHarness = harness;
+    this.latestInconsistencies = inconsistencies;
+    this.render();
+  }
+
+  private render(): void {
+    if (!this.latestHarness) return;
+    const elements = buildGraph(this.latestHarness, {
+      includePluginSkills: this.includePluginSkills,
+    });
     const issueTargets = [
       ...new Set(
-        inconsistencies
+        this.latestInconsistencies
           .map((inc) => inc.targetId)
           .filter((t): t is string => typeof t === "string" && t.length > 0),
       ),
@@ -139,6 +152,9 @@ export class BlueprintPanel {
       }
     } else if (msg.type === "openFile" && msg.path) {
       void vscode.window.showTextDocument(vscode.Uri.file(msg.path));
+    } else if (msg.type === "setIncludePluginSkills") {
+      this.includePluginSkills = Boolean(msg.value);
+      this.render();
     }
   }
 
