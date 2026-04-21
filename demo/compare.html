@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>CCO vs Yggdrasill</title>
+    <style>
+      :root { color-scheme: dark; }
+      body {
+        margin: 0;
+        background: #0b1020;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        color: #e2e8f0;
+      }
+      .wrap {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        width: 1920px;
+      }
+      figure {
+        margin: 0;
+        padding: 16px;
+        box-sizing: border-box;
+      }
+      figure.cco {
+        background: #f5f5f0;
+        color: #1a1a1a;
+      }
+      figure.yg {
+        background: linear-gradient(180deg, rgba(124, 58, 237, 0.12), rgba(11, 16, 32, 1) 60%);
+      }
+      img {
+        width: 100%;
+        display: block;
+        border-radius: 8px;
+      }
+      figcaption {
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0 0 12px;
+        letter-spacing: 0.02em;
+      }
+      figure.cco figcaption { color: #064e3b; }
+      figure.yg figcaption { color: #c4b5fd; }
+      .tag {
+        display: inline-block;
+        font-size: 13px;
+        padding: 2px 10px;
+        border-radius: 999px;
+        margin-left: 8px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        font-weight: 600;
+      }
+      figure.cco .tag { background: #d1fae5; color: #065f46; }
+      figure.yg .tag { background: rgba(139, 92, 246, 0.25); color: #ede9fe; }
+      .sub {
+        font-size: 14px;
+        font-weight: 500;
+        margin-top: 4px;
+        opacity: 0.75;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <figure class="cco">
+        <figcaption>
+          CCO <span class="tag">tree + list</span>
+          <div class="sub">mcpware/claude-code-organizer — browses categories, one count per row</div>
+        </figcaption>
+        <img src="../media/screenshots/cco-dashboard.png" alt="CCO" />
+      </figure>
+      <figure class="yg">
+        <figcaption>
+          Yggdrasill <span class="tag">graph + relationships</span>
+          <div class="sub">claude in the middle, loading order left→right, colored overrides / requires-tool edges</div>
+        </figcaption>
+        <img src="../media/screenshots/yggdrasill-blueprint.png" alt="Yggdrasill" />
+      </figure>
+    </div>
+  </body>
+</html>

@@ -10,6 +10,8 @@ Yggdrasill walks your active workspace, reads every Claude Code surface (`settin
 
 There are already great extensions for browsing skills, listing MCP servers, and tracking session activity. None of them show **relationships**. A skill says it `requires-tool Bash` — which one? A plugin claims to *own* a skill — show me the link. A permission `allow` and a `deny` collide on the same pattern — make it impossible to miss. That is the gap Yggdrasill fills.
 
+![CCO's list vs Yggdrasill's graph](media/screenshots/cco-vs-yggdrasill.png)
+
 | | Browse | Tree | Graph | Relationships | Inside VS Code |
 |---|---|---|---|---|---|
 | CCO (mcpware) | ✓ | ✓ | — | — | — |
