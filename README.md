@@ -90,10 +90,15 @@ npm run package      # build .vsix
 
 The repo holds two TypeScript projects: the extension (`src/`, Node CJS) and the React WebView (`media/blueprint/`, browser IIFE). Both are bundled by `esbuild.config.mjs`.
 
+## Known limitations
+
+- On a busy harness (many enabled plugins + memory entries), the Blueprint can still spill past one viewport even with `Show plugin skills`, `env`, and `permissions` toggled off. Use the **Fit** button or the controls panel to reframe; the underlying density work is on the v0.2 roadmap.
+
 ## Roadmap
 
+- **Density-first re-layout** — collapse heavy categories (pluginGroup, memory) into summary cards by default, click to expand a single category in place.
 - Click-to-focus subgraph (1-2 hop neighborhood around a selected node).
-- Edge-kind filter chips on the toolbar (toggle `invokes`, `shadows`, etc. independently).
+- Edge-kind filter chips on the toolbar (toggle `invokes`, `overrides`, `requires-tool`, etc. independently).
 - Selected-node detail panel with incoming / outgoing edge listing.
 - Slack-webhook variant of the input-required notification.
 - Plugin → Hook / MCP `owns` extraction (parser extension).

@@ -95,3 +95,9 @@ the unique view of how your Claude Code harness pieces actually connect.
 - `plugin` graph nodes and the standalone Sidebar `Plugins` category —
   both duplicated the namespace plugin grouping under Skills and the
   `plugin.missing-install` analyzer.
+
+### Known issues
+- Blueprint density: a busy harness (lots of enabled plugins + memory)
+  can still spill past one viewport even with all default filters
+  applied. Compact-by-default collapsing of heavy categories is
+  scheduled for v0.2.
