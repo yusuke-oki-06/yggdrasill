@@ -33,3 +33,6 @@ Thumbs.db
 
 # vsce package output
 *.vsix
+
+# Icon/asset experiments not part of the shipped extension
+media/candidates/
