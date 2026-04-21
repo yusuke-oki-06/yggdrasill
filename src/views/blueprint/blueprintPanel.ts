@@ -6,7 +6,7 @@ import { buildGraph, type GraphElements } from "../../graph/elements.js";
 import type { Harness } from "../../parser/types.js";
 
 interface WebViewMessage {
-  type: "openFile" | "ready" | "setIncludePluginSkills";
+  type: "openFile" | "ready" | "setIncludePluginSkills" | "setIncludeEnv" | "setIncludePermissions";
   path?: string;
   value?: boolean;
 }
@@ -58,6 +58,8 @@ export class BlueprintPanel {
   private latestHarness: Harness | null = null;
   private latestInconsistencies: Inconsistency[] = [];
   private includePluginSkills = false;
+  private includeEnv = false;
+  private includePermissions = false;
 
   private constructor(
     private readonly context: vscode.ExtensionContext,
@@ -86,6 +88,8 @@ export class BlueprintPanel {
     if (!this.latestHarness) return;
     const elements = buildGraph(this.latestHarness, {
       includePluginSkills: this.includePluginSkills,
+      includeEnv: this.includeEnv,
+      includePermissions: this.includePermissions,
     });
     const issueTargets = [
       ...new Set(
@@ -154,6 +158,12 @@ export class BlueprintPanel {
       void vscode.window.showTextDocument(vscode.Uri.file(msg.path));
     } else if (msg.type === "setIncludePluginSkills") {
       this.includePluginSkills = Boolean(msg.value);
+      this.render();
+    } else if (msg.type === "setIncludeEnv") {
+      this.includeEnv = Boolean(msg.value);
+      this.render();
+    } else if (msg.type === "setIncludePermissions") {
+      this.includePermissions = Boolean(msg.value);
       this.render();
     }
   }

@@ -13,7 +13,24 @@
       <input id="search" type="search" placeholder="Filter by name…" autocomplete="off" />
       <label class="toggle">
         <input id="show-plugins" type="checkbox" />
-        Show plugin skills
+        plugin skills
+      </label>
+      <label class="toggle">
+        <input id="show-env" type="checkbox" />
+        env
+      </label>
+      <label class="toggle">
+        <input id="show-perms" type="checkbox" />
+        permissions
+      </label>
+      <label class="toggle">
+        Layout
+        <select id="layout-select">
+          <option value="fcose">fcose</option>
+          <option value="concentric" selected>concentric</option>
+          <option value="cose">cose</option>
+          <option value="breadthfirst">breadthfirst</option>
+        </select>
       </label>
       <span id="stats"></span>
       <button id="refit" type="button">Fit</button>

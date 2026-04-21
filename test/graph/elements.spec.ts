@@ -17,7 +17,7 @@ describe("buildGraph", () => {
 
   it("produces nodes for every harness category and edges from the workspace root", async () => {
     const harness = await parseHarness(fx.root, { memoryRoot: path.join(fx.root, "memory") });
-    const graph = buildGraph(harness);
+    const graph = buildGraph(harness, { includeEnv: true, includePermissions: true });
 
     const kinds = new Set(graph.nodes.map((n) => n.data.kind));
     expect(kinds).toContain("workspace");
@@ -99,6 +99,19 @@ describe("buildGraph", () => {
     const groupChildren = graph.nodes.filter((n) => n.data.parent === group!.data.id);
     expect(groupChildren.length).toBeGreaterThanOrEqual(2);
     expect(groupChildren.every((c) => c.data.kind === "skill")).toBe(true);
+  });
+
+  it("hides env and permission nodes by default and emits them when toggled", async () => {
+    const harness = await parseHarness(fx.root, { memoryRoot: path.join(fx.root, "memory") });
+    const defaultGraph = buildGraph(harness);
+    const defaultKinds = new Set(defaultGraph.nodes.map((n) => n.data.kind));
+    expect(defaultKinds.has("env")).toBe(false);
+    expect(defaultKinds.has("permission")).toBe(false);
+
+    const opened = buildGraph(harness, { includeEnv: true, includePermissions: true });
+    const openedKinds = new Set(opened.nodes.map((n) => n.data.kind));
+    expect(openedKinds.has("env")).toBe(true);
+    expect(openedKinds.has("permission")).toBe(true);
   });
 
   it("hides plugin skill leaves by default but keeps the pluginGroup node", async () => {

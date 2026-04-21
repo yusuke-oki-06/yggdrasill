@@ -48,12 +48,16 @@ export interface GraphElements {
 
 export interface BuildOptions {
   includePluginSkills?: boolean;
+  includeEnv?: boolean;
+  includePermissions?: boolean;
 }
 
 const MAX_PLUGIN_SKILLS_PER_PLUGIN = 6;
 
 export function buildGraph(harness: Harness, options: BuildOptions = {}): GraphElements {
   const includePluginSkills = options.includePluginSkills ?? false;
+  const includeEnv = options.includeEnv ?? false;
+  const includePermissions = options.includePermissions ?? false;
 
   const nodes: GraphNode[] = [];
   const edges: GraphEdge[] = [];
@@ -118,17 +122,19 @@ export function buildGraph(harness: Harness, options: BuildOptions = {}): GraphE
       },
     });
     edges.push(edgeFor(workspaceId, id, "connects"));
-    for (const envKey of mcp.envKeys) {
-      const envId = nodeId("env", envKey);
-      push({
-        data: {
-          id: envId,
-          label: envKey,
-          kind: "env",
-          description: harness.env[envKey] ?? "(missing)",
-        },
-      });
-      edges.push(edgeFor(id, envId, "needs-env"));
+    if (includeEnv) {
+      for (const envKey of mcp.envKeys) {
+        const envId = nodeId("env", envKey);
+        push({
+          data: {
+            id: envId,
+            label: envKey,
+            kind: "env",
+            description: harness.env[envKey] ?? "(missing)",
+          },
+        });
+        edges.push(edgeFor(id, envId, "needs-env"));
+      }
     }
   }
 
@@ -164,18 +170,20 @@ export function buildGraph(harness: Harness, options: BuildOptions = {}): GraphE
     edges.push(edgeFor(workspaceId, id, "remembers"));
   }
 
-  for (const perm of harness.permissions) {
-    const id = nodeId("permission", perm.id);
-    push({
-      data: {
-        id,
-        label: truncate(perm.pattern, 48),
-        kind: "permission",
-        source: perm.source,
-        description: perm.mode,
-      },
-    });
-    edges.push(edgeFor(workspaceId, id, perm.mode));
+  if (includePermissions) {
+    for (const perm of harness.permissions) {
+      const id = nodeId("permission", perm.id);
+      push({
+        data: {
+          id,
+          label: truncate(perm.pattern, 48),
+          kind: "permission",
+          source: perm.source,
+          description: perm.mode,
+        },
+      });
+      edges.push(edgeFor(workspaceId, id, perm.mode));
+    }
   }
 
   for (const rule of harness.rules) {

@@ -59,6 +59,15 @@ body {
   cursor: pointer;
 }
 
+.toolbar select {
+  background: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 12px;
+}
+
 #stats {
   color: var(--muted);
   font-variant-numeric: tabular-nums;

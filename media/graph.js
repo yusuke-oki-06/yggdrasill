@@ -131,9 +131,27 @@
     elements: [],
     style,
     wheelSensitivity: 0.4,
-    minZoom: 0.1,
+    minZoom: 0.2,
     maxZoom: 4,
   });
+
+  const RING = {
+    workspace: 5,
+    pluginGroup: 4,
+    plugin: 4,
+    mcp: 4,
+    claudeMd: 4,
+    skill: 3,
+    hook: 3,
+    memory: 3,
+    rule: 3,
+    permission: 2,
+    configFile: 2,
+    tool: 1,
+    env: 1,
+  };
+
+  let currentLayout = "concentric";
 
   cy.on("tap", "node", (evt) => {
     const data = evt.target.data();
@@ -146,12 +164,32 @@
   const stats = document.getElementById("stats");
   const refit = document.getElementById("refit");
   const showPlugins = document.getElementById("show-plugins");
+  const showEnv = document.getElementById("show-env");
+  const showPerms = document.getElementById("show-perms");
+  const layoutSelect = document.getElementById("layout-select");
 
   search.addEventListener("input", () => applyFilter(search.value));
-  refit.addEventListener("click", () => cy.animate({ fit: { padding: 60 }, duration: 250 }));
+  refit.addEventListener("click", () => smartFit());
   if (showPlugins) {
     showPlugins.addEventListener("change", () => {
       vscode.postMessage({ type: "setIncludePluginSkills", value: showPlugins.checked });
+    });
+  }
+  if (showEnv) {
+    showEnv.addEventListener("change", () => {
+      vscode.postMessage({ type: "setIncludeEnv", value: showEnv.checked });
+    });
+  }
+  if (showPerms) {
+    showPerms.addEventListener("change", () => {
+      vscode.postMessage({ type: "setIncludePermissions", value: showPerms.checked });
+    });
+  }
+  if (layoutSelect) {
+    layoutSelect.addEventListener("change", () => {
+      currentLayout = layoutSelect.value;
+      runLayout();
+      smartFit();
     });
   }
 
@@ -173,23 +211,70 @@
     matchedWithEdges.removeClass("faded");
   }
 
-  function layout() {
-    const layoutOpts = window.cytoscapeFcose
-      ? {
-          name: "fcose",
-          animate: false,
-          quality: "default",
-          randomize: true,
-          idealEdgeLength: 160,
-          nodeRepulsion: 14000,
-          gravity: 0.3,
-          gravityRangeCompound: 1.2,
-          nodeSeparation: 120,
-          nestingFactor: 0.6,
-          padding: 60,
-        }
-      : { name: "cose", animate: false, nodeRepulsion: 12000, idealEdgeLength: 160 };
-    cy.layout(layoutOpts).run();
+  function runLayout() {
+    let opts;
+    if (currentLayout === "concentric") {
+      opts = {
+        name: "concentric",
+        concentric: (n) => RING[n.data("kind")] ?? 0,
+        levelWidth: () => 1,
+        minNodeSpacing: 80,
+        spacingFactor: 1.4,
+        startAngle: -Math.PI / 2,
+        clockwise: true,
+        animate: false,
+        padding: 60,
+      };
+    } else if (currentLayout === "breadthfirst") {
+      const ws = cy.nodes('[kind = "workspace"]');
+      opts = {
+        name: "breadthfirst",
+        roots: ws.length ? ws.map((n) => n.id()) : undefined,
+        spacingFactor: 1.5,
+        animate: false,
+        padding: 60,
+      };
+    } else if (currentLayout === "fcose" && window.cytoscapeFcose) {
+      opts = {
+        name: "fcose",
+        animate: false,
+        quality: "default",
+        randomize: true,
+        idealEdgeLength: 200,
+        nodeRepulsion: 18000,
+        gravity: 0.25,
+        gravityRangeCompound: 1.2,
+        nodeSeparation: 160,
+        nestingFactor: 0.6,
+        padding: 80,
+      };
+    } else {
+      opts = {
+        name: "cose",
+        animate: false,
+        nodeRepulsion: 16000,
+        idealEdgeLength: 180,
+        gravity: 0.25,
+        padding: 60,
+      };
+    }
+    cy.layout(opts).run();
+  }
+
+  function smartFit() {
+    const total = cy.nodes().length;
+    if (total === 0) return;
+    if (total <= 40) {
+      cy.animate({ fit: { padding: 60 }, duration: 250 });
+      return;
+    }
+    cy.fit(undefined, 60);
+    if (cy.zoom() < 0.45) {
+      cy.zoom(0.7);
+      const ws = cy.nodes('[kind = "workspace"]')[0];
+      if (ws) cy.center(ws);
+      else cy.center();
+    }
   }
 
   window.addEventListener("message", (event) => {
@@ -199,8 +284,8 @@
       cy.elements().remove();
       cy.add(msg.elements.nodes);
       cy.add(msg.elements.edges);
-      layout();
-      cy.fit(undefined, 60);
+      runLayout();
+      smartFit();
       const issueTargets = new Set(msg.issueTargets || []);
       cy.nodes().forEach((n) => {
         if (issueTargets.has(n.id())) n.addClass("has-issue");
