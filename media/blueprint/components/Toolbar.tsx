@@ -5,7 +5,7 @@ export interface ToolbarFilters {
   showPlugins: boolean;
   showEnv: boolean;
   showPerms: boolean;
-  layout: "LR" | "TB";
+  layout: "RIGHT" | "DOWN";
 }
 
 export interface ToolbarProps {
@@ -64,10 +64,10 @@ export function Toolbar({ filters, stats, onChange, onFit }: ToolbarProps): JSX.
         layout
         <select
           value={filters.layout}
-          onChange={(e) => onChange({ layout: e.target.value as "LR" | "TB" })}
+          onChange={(e) => onChange({ layout: e.target.value as "RIGHT" | "DOWN" })}
         >
-          <option value="LR">left → right</option>
-          <option value="TB">top → bottom</option>
+          <option value="RIGHT">left → right</option>
+          <option value="DOWN">top → bottom</option>
         </select>
       </label>
       <span className="stats">{stats}</span>

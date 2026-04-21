@@ -9,10 +9,10 @@ import {
   type Node,
   type NodeMouseHandler,
 } from "@xyflow/react";
-import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from "react";
+import { useCallback, useEffect, useRef, useState, type JSX } from "react";
 import { HarnessNode, type HarnessNodeData } from "./components/HarnessNode.js";
 import { Toolbar, type ToolbarFilters } from "./components/Toolbar.js";
-import { layoutNodes } from "./layout.js";
+import { fallbackGrid, layoutNodes } from "./layout.js";
 import type {
   EdgeData,
   FromExtensionMessage,
@@ -54,8 +54,12 @@ function Inner({ vscode }: AppProps): JSX.Element {
     showPlugins: false,
     showEnv: false,
     showPerms: false,
-    layout: "LR",
+    layout: "RIGHT",
   });
+  const [graphNodes, setGraphNodes] = useState<Node<HarnessNodeData>[]>([]);
+  const [graphEdges, setGraphEdges] = useState<Edge[]>([]);
+  const [stats, setStats] = useState("");
+  const [layoutBusy, setLayoutBusy] = useState(false);
   const flow = useReactFlow();
   const sentRef = useRef<{ plugins?: boolean; env?: boolean; perms?: boolean }>({});
 
@@ -95,7 +99,8 @@ function Inner({ vscode }: AppProps): JSX.Element {
     }
   }, [filters.showPerms, vscode]);
 
-  const { nodes, edges, stats } = useMemo(() => {
+  useEffect(() => {
+    let cancelled = false;
     const q = filters.query.trim().toLowerCase();
     const baseNodes: Node<HarnessNodeData>[] = rawNodes.map((data) => ({
       id: data.id,
@@ -120,45 +125,65 @@ function Inner({ vscode }: AppProps): JSX.Element {
       labelBgStyle: { fill: "rgba(15,23,42,0.85)" },
     }));
 
-    const positioned = layoutNodes(baseNodes, baseEdges, filters.layout);
-
-    if (q.length > 0) {
-      const matched = new Set<string>();
-      for (const n of positioned) {
-        const data = n.data.payload;
-        if (
-          data.label.toLowerCase().includes(q) ||
-          (data.description ?? "").toLowerCase().includes(q)
-        ) {
-          matched.add(n.id);
-        }
-      }
-      for (const e of baseEdges) {
-        if (matched.has(e.source) || matched.has(e.target)) {
-          matched.add(e.source);
-          matched.add(e.target);
-        }
-      }
-      for (const n of positioned) {
-        if (!matched.has(n.id)) {
-          n.style = { ...(n.style ?? {}), opacity: 0.18 };
-        }
-      }
-      for (const e of baseEdges) {
-        if (!matched.has(e.source) || !matched.has(e.target)) {
-          e.style = { ...e.style, opacity: 0.1 };
-        }
-      }
+    if (baseNodes.length === 0) {
+      setGraphNodes([]);
+      setGraphEdges([]);
+      setStats("");
+      return;
     }
 
-    const relCount = baseEdges.filter((e) => e.animated).length;
-    const issueCount = issueIds.size;
-    const stats =
-      `${positioned.length} nodes · ${baseEdges.length} edges` +
-      (relCount ? ` · ${relCount} rel` : "") +
-      (issueCount ? ` · ${issueCount} ⚠` : "");
+    setLayoutBusy(true);
+    const apply = (positioned: Node<HarnessNodeData>[]): void => {
+      if (cancelled) return;
+      let finalNodes = positioned;
+      const finalEdges = baseEdges;
 
-    return { nodes: positioned, edges: baseEdges, stats };
+      if (q.length > 0) {
+        const matched = new Set<string>();
+        for (const n of finalNodes) {
+          const data = n.data.payload;
+          if (
+            data.label.toLowerCase().includes(q) ||
+            (data.description ?? "").toLowerCase().includes(q)
+          ) {
+            matched.add(n.id);
+          }
+        }
+        for (const e of finalEdges) {
+          if (matched.has(e.source) || matched.has(e.target)) {
+            matched.add(e.source);
+            matched.add(e.target);
+          }
+        }
+        finalNodes = finalNodes.map((n) =>
+          matched.has(n.id) ? n : { ...n, style: { ...(n.style ?? {}), opacity: 0.18 } },
+        );
+        for (const e of finalEdges) {
+          if (!matched.has(e.source) || !matched.has(e.target)) {
+            e.style = { ...e.style, opacity: 0.1 };
+          }
+        }
+      }
+
+      const relCount = finalEdges.filter((e) => e.animated).length;
+      const issueCount = issueIds.size;
+      setGraphNodes(finalNodes);
+      setGraphEdges(finalEdges);
+      setStats(
+        `${finalNodes.length} nodes · ${finalEdges.length} edges` +
+          (relCount ? ` · ${relCount} rel` : "") +
+          (issueCount ? ` · ${issueCount} ⚠` : ""),
+      );
+      setLayoutBusy(false);
+    };
+
+    layoutNodes(baseNodes, baseEdges, filters.layout)
+      .then(apply)
+      .catch(() => apply(fallbackGrid(baseNodes)));
+
+    return () => {
+      cancelled = true;
+    };
   }, [rawNodes, rawEdges, issueIds, filters.query, filters.layout]);
 
   const onNodeClick: NodeMouseHandler = useCallback(
@@ -179,24 +204,24 @@ function Inner({ vscode }: AppProps): JSX.Element {
   }, [flow]);
 
   useEffect(() => {
-    if (nodes.length === 0) return;
+    if (graphNodes.length === 0) return;
     const t = window.setTimeout(() => flow.fitView({ padding: 0.2 }), 60);
     return () => window.clearTimeout(t);
-  }, [nodes, flow]);
+  }, [graphNodes, flow]);
 
   return (
     <div className="app">
       <Toolbar filters={filters} stats={stats} onChange={onChangeFilter} onFit={onFit} />
       <div className="canvas">
         <ReactFlow
-          nodes={nodes}
-          edges={edges}
+          nodes={graphNodes}
+          edges={graphEdges}
           nodeTypes={NODE_TYPES}
           onNodeClick={onNodeClick}
           fitView
           fitViewOptions={{ padding: 0.2 }}
-          minZoom={0.2}
-          maxZoom={2.2}
+          minZoom={0.15}
+          maxZoom={2.5}
           proOptions={{ hideAttribution: true }}
         >
           <Background color="rgba(148,163,184,0.18)" gap={24} size={1} />
@@ -212,6 +237,9 @@ function Inner({ vscode }: AppProps): JSX.Element {
             }}
           />
         </ReactFlow>
+        {layoutBusy && graphNodes.length === 0 ? (
+          <div className="layout-busy">computing layout…</div>
+        ) : null}
       </div>
     </div>
   );

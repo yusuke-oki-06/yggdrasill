@@ -1,8 +1,10 @@
-import dagre from "@dagrejs/dagre";
+import ELK from "elkjs/lib/elk.bundled.js";
 import type { Edge, Node } from "@xyflow/react";
 
-const NODE_WIDTH: Record<string, number> = {
-  workspace: 200,
+const elk = new ELK();
+
+const NODE_W: Record<string, number> = {
+  workspace: 220,
   pluginGroup: 200,
   plugin: 180,
   mcp: 200,
@@ -17,8 +19,8 @@ const NODE_WIDTH: Record<string, number> = {
   env: 140,
 };
 
-const NODE_HEIGHT: Record<string, number> = {
-  workspace: 90,
+const NODE_H: Record<string, number> = {
+  workspace: 100,
   pluginGroup: 90,
   plugin: 80,
   mcp: 80,
@@ -33,34 +35,70 @@ const NODE_HEIGHT: Record<string, number> = {
   env: 50,
 };
 
-export function layoutNodes<T extends Record<string, unknown>>(
+export type LayoutDirection = "RIGHT" | "DOWN";
+
+export async function layoutNodes<T extends Record<string, unknown>>(
   nodes: Node<T>[],
   edges: Edge[],
-  direction: "LR" | "TB" = "LR",
-): Node<T>[] {
-  const g = new dagre.graphlib.Graph();
-  g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: direction, nodesep: 60, ranksep: 120, marginx: 40, marginy: 40 });
+  direction: LayoutDirection = "RIGHT",
+): Promise<Node<T>[]> {
+  if (nodes.length === 0) return nodes;
 
-  for (const n of nodes) {
+  const elkNodes = nodes.map((n) => {
     const kind = ((n.data as { kind?: string })?.kind ?? "skill") as string;
-    g.setNode(n.id, {
-      width: NODE_WIDTH[kind] ?? 180,
-      height: NODE_HEIGHT[kind] ?? 80,
-    });
-  }
-  for (const e of edges) {
-    g.setEdge(e.source, e.target);
-  }
-
-  dagre.layout(g);
-
-  return nodes.map((n) => {
-    const pos = g.node(n.id);
-    if (!pos) return n;
     return {
-      ...n,
-      position: { x: pos.x - pos.width / 2, y: pos.y - pos.height / 2 },
+      id: n.id,
+      width: NODE_W[kind] ?? 180,
+      height: NODE_H[kind] ?? 80,
     };
   });
+  const elkEdges = edges.map((e) => ({
+    id: e.id,
+    sources: [e.source],
+    targets: [e.target],
+  }));
+
+  try {
+    const result = await elk.layout({
+      id: "root",
+      layoutOptions: {
+        "elk.algorithm": "layered",
+        "elk.direction": direction,
+        "elk.aspectRatio": "1.78",
+        "elk.layered.spacing.nodeNodeBetweenLayers": "90",
+        "elk.spacing.nodeNode": "40",
+        "elk.layered.nodePlacement.strategy": "NETWORK_SIMPLEX",
+        "elk.layered.crossingMinimization.strategy": "LAYER_SWEEP",
+        "elk.edgeRouting": "POLYLINE",
+        "elk.layered.compaction.connectedComponents": "true",
+        "elk.layered.thoroughness": "30",
+        "elk.padding": "[top=40,left=40,bottom=40,right=40]",
+      },
+      children: elkNodes,
+      edges: elkEdges,
+    });
+
+    const positions = new Map<string, { x: number; y: number }>();
+    for (const child of result.children ?? []) {
+      if (typeof child.x === "number" && typeof child.y === "number") {
+        positions.set(child.id, { x: child.x, y: child.y });
+      }
+    }
+    return nodes.map((n) => {
+      const p = positions.get(n.id);
+      return p ? { ...n, position: p } : n;
+    });
+  } catch {
+    return fallbackGrid(nodes);
+  }
+}
+
+export function fallbackGrid<T extends Record<string, unknown>>(nodes: Node<T>[]): Node<T>[] {
+  const COLS = Math.max(1, Math.ceil(Math.sqrt(nodes.length * 1.78)));
+  const COL_W = 240;
+  const ROW_H = 120;
+  return nodes.map((n, i) => ({
+    ...n,
+    position: { x: (i % COLS) * COL_W, y: Math.floor(i / COLS) * ROW_H },
+  }));
 }
