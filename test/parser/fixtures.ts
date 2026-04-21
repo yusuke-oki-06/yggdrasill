@@ -6,7 +6,7 @@ export async function makeFixture(): Promise<{
   root: string;
   cleanup: () => Promise<void>;
 }> {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "yggdrasil-fx-"));
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "yggdrasill-fx-"));
 
   await fs.mkdir(path.join(root, ".claude", "skills", "example-skill"), { recursive: true });
   await fs.mkdir(path.join(root, ".claude", "rules"), { recursive: true });

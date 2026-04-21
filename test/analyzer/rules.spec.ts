@@ -172,7 +172,7 @@ describe("pluginMissingInstall", () => {
   let pluginsRoot: string;
 
   beforeEach(async () => {
-    pluginsRoot = await fs.mkdtemp(path.join(os.tmpdir(), "yggdrasil-plugins-"));
+    pluginsRoot = await fs.mkdtemp(path.join(os.tmpdir(), "yggdrasill-plugins-"));
   });
 
   afterEach(async () => {

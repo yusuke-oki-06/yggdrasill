@@ -6,7 +6,7 @@ import { afterAll, beforeAll } from "vitest";
 let isolatedUserClaude: string;
 
 beforeAll(async () => {
-  isolatedUserClaude = await fs.mkdtemp(path.join(os.tmpdir(), "yggdrasil-user-"));
+  isolatedUserClaude = await fs.mkdtemp(path.join(os.tmpdir(), "yggdrasill-user-"));
   process.env.YGGDRASIL_USER_CLAUDE_DIR = isolatedUserClaude;
 });
 

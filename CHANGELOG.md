@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Yggdrasil will be documented in this file.
+All notable changes to Yggdrasill will be documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
@@ -74,14 +74,14 @@ the unique view of how your Claude Code harness pieces actually connect.
   workspace.
 - Tail parsing detects `AskUserQuestion`, `ExitPlanMode` and
   `permission_request` events and shows an "Open Transcript" notification.
-  Honors the `yggdrasil.notifications.enabled` setting; deduplicates by
+  Honors the `yggdrasill.notifications.enabled` setting; deduplicates by
   file size to avoid repeating on unrelated edits.
 
 #### Commands & configuration
-- `Yggdrasil: Hello`, `Yggdrasil: Open Blueprint`, `Yggdrasil: Refresh
+- `Yggdrasill: Hello`, `Yggdrasill: Open Blueprint`, `Yggdrasill: Refresh
   Harness`.
-- Settings: `yggdrasil.notifications.enabled`,
-  `yggdrasil.parser.memoryRoot`.
+- Settings: `yggdrasill.notifications.enabled`,
+  `yggdrasill.parser.memoryRoot`.
 
 ### Changed
 - Migrated the Blueprint WebView from cytoscape.js to React + react-flow

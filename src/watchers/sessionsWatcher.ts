@@ -88,7 +88,7 @@ export class SessionsWatcher implements vscode.Disposable {
 function defaultShow(kind: InputRequiredKind, sessionId: string, filePath: string): void {
   void vscode.window
     .showInformationMessage(
-      `Yggdrasil: Claude Code is waiting for input — ${labelFor(kind)} (session ${sessionId.slice(0, 8)})`,
+      `Yggdrasill: Claude Code is waiting for input — ${labelFor(kind)} (session ${sessionId.slice(0, 8)})`,
       "Open Transcript",
     )
     .then((action) => {
@@ -100,7 +100,7 @@ function defaultShow(kind: InputRequiredKind, sessionId: string, filePath: strin
 
 function defaultIsEnabled(): boolean {
   return vscode.workspace
-    .getConfiguration("yggdrasil")
+    .getConfiguration("yggdrasill")
     .get<boolean>("notifications.enabled", true);
 }
 

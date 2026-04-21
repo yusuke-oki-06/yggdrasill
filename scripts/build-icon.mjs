@@ -1,4 +1,4 @@
-// Render media/yggdrasil-icon.svg to a 128x128 PNG. Marketplace requires PNG.
+// Render media/yggdrasill-icon.svg to a 128x128 PNG. Marketplace requires PNG.
 // Run with `node scripts/build-icon.mjs`.
 import { promises as fs } from "node:fs";
 import path from "node:path";
@@ -7,8 +7,8 @@ import { Resvg } from "@resvg/resvg-js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
-const inputPath = path.join(root, "media", "yggdrasil-icon.svg");
-const outputPath = path.join(root, "media", "yggdrasil-icon.png");
+const inputPath = path.join(root, "media", "yggdrasill-icon.svg");
+const outputPath = path.join(root, "media", "yggdrasill-icon.png");
 
 const raw = await fs.readFile(inputPath, "utf8");
 

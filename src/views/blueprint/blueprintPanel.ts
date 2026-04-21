@@ -35,8 +35,8 @@ export class BlueprintPanel {
       return BlueprintPanel.current;
     }
     const panel = vscode.window.createWebviewPanel(
-      "yggdrasil.blueprint",
-      "Yggdrasil Blueprint",
+      "yggdrasill.blueprint",
+      "Yggdrasill Blueprint",
       vscode.ViewColumn.Active,
       {
         enableScripts: true,

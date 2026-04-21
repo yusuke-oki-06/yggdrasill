@@ -108,7 +108,7 @@ export class HarnessTreeProvider implements vscode.TreeDataProvider<HarnessNode>
             : vscode.TreeItemCollapsibleState.Expanded;
       const item = new vscode.TreeItem(`${element.label} (${element.count})`, state);
       item.iconPath = new vscode.ThemeIcon(iconForCategory(element.category));
-      item.contextValue = `yggdrasil.category.${element.category}`;
+      item.contextValue = `yggdrasill.category.${element.category}`;
       return item;
     }
 
@@ -118,7 +118,7 @@ export class HarnessTreeProvider implements vscode.TreeDataProvider<HarnessNode>
         vscode.TreeItemCollapsibleState.Collapsed,
       );
       item.iconPath = new vscode.ThemeIcon(iconForSource(element.source));
-      item.contextValue = `yggdrasil.source.${element.source}`;
+      item.contextValue = `yggdrasill.source.${element.source}`;
       return item;
     }
 
@@ -130,7 +130,7 @@ export class HarnessTreeProvider implements vscode.TreeDataProvider<HarnessNode>
       item.description = element.pluginNamespace;
       item.tooltip = `${element.pluginNamespace}/${element.pluginName}`;
       item.iconPath = new vscode.ThemeIcon("package");
-      item.contextValue = `yggdrasil.plugin.${element.pluginNamespace}.${element.pluginName}`;
+      item.contextValue = `yggdrasill.plugin.${element.pluginNamespace}.${element.pluginName}`;
       return item;
     }
 

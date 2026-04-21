@@ -80,7 +80,7 @@ describe("detectInputRequired", () => {
 
 describe("readTail", () => {
   it("returns the trailing complete lines from a file", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "yggdrasil-tail-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "yggdrasill-tail-"));
     const file = path.join(dir, "session.jsonl");
     try {
       const big = "x".repeat(20 * 1024);
@@ -96,7 +96,7 @@ describe("readTail", () => {
   });
 
   it("returns empty array for empty file", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "yggdrasil-tail-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "yggdrasill-tail-"));
     const file = path.join(dir, "empty.jsonl");
     try {
       await fs.writeFile(file, "", "utf8");

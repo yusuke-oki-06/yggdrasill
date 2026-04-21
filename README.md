@@ -1,14 +1,14 @@
-# Yggdrasil
+# Yggdrasill
 
 > **Harness relationship graph for Claude Code, inside VS Code.**
 
-Yggdrasil walks your active workspace, reads every Claude Code surface (`settings.json`, `CLAUDE.md`, `AGENTS.md`, `.mcp.json`, `skills/`, `memory/`, hooks, plugins, permissions), and renders **how they connect** — not just *what exists*.
+Yggdrasill walks your active workspace, reads every Claude Code surface (`settings.json`, `CLAUDE.md`, `AGENTS.md`, `.mcp.json`, `skills/`, `memory/`, hooks, plugins, permissions), and renders **how they connect** — not just *what exists*.
 
 ![Blueprint hero](media/screenshots/blueprint-full.png)
 
 ## Why another Claude Code tool?
 
-There are already great extensions for browsing skills, listing MCP servers, and tracking session activity. None of them show **relationships**. A skill says it `requires-tool Bash` — which one? A plugin claims to *own* a skill — show me the link. A permission `allow` and a `deny` collide on the same pattern — make it impossible to miss. That is the gap Yggdrasil fills.
+There are already great extensions for browsing skills, listing MCP servers, and tracking session activity. None of them show **relationships**. A skill says it `requires-tool Bash` — which one? A plugin claims to *own* a skill — show me the link. A permission `allow` and a `deny` collide on the same pattern — make it impossible to miss. That is the gap Yggdrasill fills.
 
 | | Browse | Tree | Graph | Relationships | Inside VS Code |
 |---|---|---|---|---|---|
@@ -16,7 +16,7 @@ There are already great extensions for browsing skills, listing MCP servers, and
 | Claude Code Tool Manager | ✓ | ✓ | — | — | — |
 | Claudia / opcode | ✓ | — | — | — | — |
 | Other VS Code skill browsers | ✓ | ✓ | — | — | ✓ |
-| **Yggdrasil** | ✓ | ✓ | ✓ | ✓ | ✓ |
+| **Yggdrasill** | ✓ | ✓ | ✓ | ✓ | ✓ |
 
 ## Features
 
@@ -32,28 +32,28 @@ There are already great extensions for browsing skills, listing MCP servers, and
 While in preview:
 
 ```bash
-code --install-extension yggdrasil-0.1.0.vsix
+code --install-extension yggdrasill-0.1.0.vsix
 ```
 
 After Marketplace publish:
 
 ```
-ext install yusuke-oki-06.yggdrasil
+ext install yusuke-oki-06.yggdrasill
 ```
 
 ## Quickstart
 
 1. Open any Claude Code workspace in VS Code.
-2. Click the 🌳 **Yggdrasil** icon in the Activity Bar.
-3. From the sidebar header, run **`Yggdrasil: Open Blueprint`** (or use the command palette).
+2. Click the 🌳 **Yggdrasill** icon in the Activity Bar.
+3. From the sidebar header, run **`Yggdrasill: Open Blueprint`** (or use the command palette).
 4. Use the toolbar to filter, switch layout direction, or reveal plugin skills / env vars / permissions.
 
 ## Settings
 
 | | Default | Description |
 |---|---|---|
-| `yggdrasil.notifications.enabled` | `true` | Show a notification when a Claude Code session needs your input. |
-| `yggdrasil.parser.memoryRoot` | `""` | Override the inferred Claude Code memory directory. |
+| `yggdrasill.notifications.enabled` | `true` | Show a notification when a Claude Code session needs your input. |
+| `yggdrasill.parser.memoryRoot` | `""` | Override the inferred Claude Code memory directory. |
 
 ## Inconsistency rules
 

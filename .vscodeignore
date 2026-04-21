@@ -4,7 +4,7 @@ src/**
 test/**
 media/blueprint/**
 media/candidates/**
-media/yggdrasil-icon.svg
+media/yggdrasill-icon.svg
 scripts/**
 .gitignore
 .eslintrc.json

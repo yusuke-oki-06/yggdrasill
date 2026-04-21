@@ -1,6 +1,6 @@
 {
-  "name": "yggdrasil",
-  "displayName": "Yggdrasil",
+  "name": "yggdrasill",
+  "displayName": "Yggdrasill",
   "description": "Harness relationship graph for Claude Code, inside VS Code. Skills, hooks, MCP, memory, plugins — and how they connect.",
   "version": "0.1.0",
   "license": "MIT",
@@ -10,13 +10,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yusuke-oki-06/yggdrasil"
+    "url": "https://github.com/yusuke-oki-06/yggdrasill"
   },
   "bugs": {
-    "url": "https://github.com/yusuke-oki-06/yggdrasil/issues"
+    "url": "https://github.com/yusuke-oki-06/yggdrasill/issues"
   },
-  "homepage": "https://github.com/yusuke-oki-06/yggdrasil#readme",
-  "icon": "media/yggdrasil-icon.png",
+  "homepage": "https://github.com/yusuke-oki-06/yggdrasill#readme",
+  "icon": "media/yggdrasill-icon.png",
   "engines": {
     "vscode": "^1.90.0",
     "node": ">=20"
@@ -44,33 +44,33 @@
   "contributes": {
     "commands": [
       {
-        "command": "yggdrasil.hello",
-        "title": "Yggdrasil: Hello",
-        "category": "Yggdrasil"
+        "command": "yggdrasill.hello",
+        "title": "Yggdrasill: Hello",
+        "category": "Yggdrasill"
       },
       {
-        "command": "yggdrasil.openBlueprint",
-        "title": "Yggdrasil: Open Blueprint",
-        "category": "Yggdrasil",
+        "command": "yggdrasill.openBlueprint",
+        "title": "Yggdrasill: Open Blueprint",
+        "category": "Yggdrasill",
         "icon": "$(symbol-structure)"
       },
       {
-        "command": "yggdrasil.refresh",
-        "title": "Yggdrasil: Refresh Harness",
-        "category": "Yggdrasil",
+        "command": "yggdrasill.refresh",
+        "title": "Yggdrasill: Refresh Harness",
+        "category": "Yggdrasill",
         "icon": "$(refresh)"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "yggdrasil.openBlueprint",
-          "when": "view == yggdrasil.harness",
+          "command": "yggdrasill.openBlueprint",
+          "when": "view == yggdrasill.harness",
           "group": "navigation@1"
         },
         {
-          "command": "yggdrasil.refresh",
-          "when": "view == yggdrasil.harness",
+          "command": "yggdrasill.refresh",
+          "when": "view == yggdrasill.harness",
           "group": "navigation@2"
         }
       ]
@@ -78,34 +78,34 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "yggdrasil",
-          "title": "Yggdrasil",
-          "icon": "media/yggdrasil-icon.svg"
+          "id": "yggdrasill",
+          "title": "Yggdrasill",
+          "icon": "media/yggdrasill-icon.svg"
         }
       ]
     },
     "views": {
-      "yggdrasil": [
+      "yggdrasill": [
         {
-          "id": "yggdrasil.harness",
+          "id": "yggdrasill.harness",
           "name": "Harness",
-          "icon": "media/yggdrasil-icon.svg",
-          "contextualTitle": "Yggdrasil Harness"
+          "icon": "media/yggdrasill-icon.svg",
+          "contextualTitle": "Yggdrasill Harness"
         }
       ]
     },
     "configuration": {
-      "title": "Yggdrasil",
+      "title": "Yggdrasill",
       "properties": {
-        "yggdrasil.notifications.enabled": {
+        "yggdrasill.notifications.enabled": {
           "type": "boolean",
           "default": true,
           "description": "Show a notification when a Claude Code session requires user input (AskUserQuestion / ExitPlanMode / permission request)."
         },
-        "yggdrasil.parser.memoryRoot": {
+        "yggdrasill.parser.memoryRoot": {
           "type": "string",
           "default": "",
-          "description": "Optional absolute path to a Claude Code memory directory. When empty, Yggdrasil infers it from the current workspace."
+          "description": "Optional absolute path to a Claude Code memory directory. When empty, Yggdrasill infers it from the current workspace."
         }
       }
     }

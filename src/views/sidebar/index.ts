@@ -16,7 +16,7 @@ export function registerSidebar(
   diagnostics: vscode.DiagnosticCollection,
 ): SidebarHandle {
   const provider = new HarnessTreeProvider();
-  const treeView = vscode.window.createTreeView("yggdrasil.harness", {
+  const treeView = vscode.window.createTreeView("yggdrasill.harness", {
     treeDataProvider: provider,
     showCollapseAll: true,
   });
@@ -30,7 +30,7 @@ export function registerSidebar(
   context.subscriptions.push(
     vscode.workspace.onDidChangeWorkspaceFolders(() => refresher.requestRefresh()),
     vscode.workspace.onDidChangeConfiguration((event) => {
-      if (event.affectsConfiguration("yggdrasil.parser.memoryRoot")) {
+      if (event.affectsConfiguration("yggdrasill.parser.memoryRoot")) {
         refresher.requestRefresh();
       }
     }),
@@ -77,7 +77,7 @@ class DebouncedRefresher {
       return;
     }
     const memoryRoot = vscode.workspace
-      .getConfiguration("yggdrasil")
+      .getConfiguration("yggdrasill")
       .get<string>("parser.memoryRoot");
     const workspace = folders[0].uri.fsPath;
     try {
@@ -92,7 +92,7 @@ class DebouncedRefresher {
       publishDiagnostics(this.diagnostics, workspace, inconsistencies);
     } catch (err) {
       vscode.window.showErrorMessage(
-        `Yggdrasil: failed to parse harness: ${(err as Error).message}`,
+        `Yggdrasill: failed to parse harness: ${(err as Error).message}`,
       );
       if (!this.disposed) {
         this.provider.setHarness(null);
@@ -114,7 +114,7 @@ function publishDiagnostics(
 ): void {
   collection.clear();
   const byPath = new Map<string, vscode.Diagnostic[]>();
-  const fallback = vscode.Uri.file(workspace).with({ fragment: "yggdrasil" });
+  const fallback = vscode.Uri.file(workspace).with({ fragment: "yggdrasill" });
 
   for (const inc of inconsistencies) {
     const diag = new vscode.Diagnostic(
@@ -122,7 +122,7 @@ function publishDiagnostics(
       inc.message,
       toSeverity(inc.severity),
     );
-    diag.source = "Yggdrasil";
+    diag.source = "Yggdrasill";
     diag.code = inc.rule;
     const key = inc.path ?? fallback.toString();
     const arr = byPath.get(key);

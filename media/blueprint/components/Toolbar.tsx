@@ -27,7 +27,7 @@ export function Toolbar({ filters, stats, onChange, onFit }: ToolbarProps): JSX.
 
   return (
     <header className="toolbar">
-      <strong className="brand">🌳 Yggdrasil Blueprint</strong>
+      <strong className="brand">🌳 Yggdrasill Blueprint</strong>
       <input
         className="search"
         type="search"

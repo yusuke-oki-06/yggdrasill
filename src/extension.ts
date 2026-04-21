@@ -4,7 +4,7 @@ import { BlueprintPanel } from "./views/blueprint/blueprintPanel.js";
 import { registerSidebar } from "./views/sidebar/index.js";
 
 export function activate(context: vscode.ExtensionContext): void {
-  const diagnostics = vscode.languages.createDiagnosticCollection("yggdrasil");
+  const diagnostics = vscode.languages.createDiagnosticCollection("yggdrasill");
   context.subscriptions.push(diagnostics);
 
   const sidebar = registerSidebar(context, diagnostics);
@@ -31,15 +31,15 @@ export function activate(context: vscode.ExtensionContext): void {
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("yggdrasil.hello", () => {
-      vscode.window.showInformationMessage("Yggdrasil: 世界樹が目覚めた 🌳");
+    vscode.commands.registerCommand("yggdrasill.hello", () => {
+      vscode.window.showInformationMessage("Yggdrasill: 世界樹が目覚めた 🌳");
     }),
-    vscode.commands.registerCommand("yggdrasil.openBlueprint", () => {
+    vscode.commands.registerCommand("yggdrasill.openBlueprint", () => {
       const harness = sidebar.provider.getHarness();
       BlueprintPanel.show(context, harness, sidebar.provider.getInconsistencies());
       if (!harness) sidebar.refresh();
     }),
-    vscode.commands.registerCommand("yggdrasil.refresh", () => {
+    vscode.commands.registerCommand("yggdrasill.refresh", () => {
       sidebar.refresh();
     }),
   );
