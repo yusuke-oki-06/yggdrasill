@@ -93,19 +93,12 @@ export function buildGraph(harness: Harness, options: BuildOptions = {}): GraphE
     edges.push(edgeFor(workspaceId, id, "defines"));
   }
 
-  for (const plugin of harness.plugins) {
-    const id = nodeId("plugin", plugin.id);
-    push({
-      data: {
-        id,
-        label: plugin.name,
-        kind: "plugin",
-        source: plugin.source,
-        description: plugin.enabled ? "enabled" : "disabled",
-      },
-    });
-    edges.push(edgeFor(workspaceId, id, "enables"));
-  }
+  // Note: harness.plugins (settings.json:enabledPlugins) is intentionally NOT
+  // rendered as graph nodes — it overlaps almost entirely with pluginGroup
+  // (the actually installed plugins providing skills) and the duplication
+  // makes the canvas noisy. Enable status is still surfaced via the sidebar,
+  // and "enabled but not installed" is reported by the plugin.missing-install
+  // analyzer rule.
 
   addSkills(harness, nodes, edges, workspaceId, seen, includePluginSkills);
 

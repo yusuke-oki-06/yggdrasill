@@ -28,7 +28,9 @@ describe("buildGraph", () => {
     expect(kinds).toContain("permission");
     expect(kinds).toContain("rule");
     expect(kinds).toContain("claudeMd");
-    expect(kinds).toContain("plugin");
+    // plugin entries are intentionally omitted from the graph; pluginGroup
+    // (when there are plugin-source skills) and the sidebar represent them.
+    expect(kinds).not.toContain("plugin");
 
     const workspace = graph.nodes.find((n) => n.data.kind === "workspace");
     expect(workspace).toBeDefined();
