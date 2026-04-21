@@ -22,8 +22,8 @@ There are already great extensions for browsing skills, listing MCP servers, and
 
 - **Harness parser** — merges every layer of Claude Code config (user / project / local / plugin) into one validated model, capturing skill frontmatter and SKILL.md body references.
 - **Sidebar Harness tree** — every category (Skills, Hooks, MCP, Memory, Permissions, Rules, CLAUDE.md, Env) with source grouping and per-plugin namespace folders. ![Sidebar](media/screenshots/sidebar.png)
-- **Blueprint graph** — react-flow + ELK layout. Workspace on the left, then layered columns flowing in the order Claude Code actually loads things. Custom Card nodes per kind, colored animated relationship edges, search, layout switcher, plugin/env/permission toggles, MiniMap.
-- **Seven relationship edge kinds** — `owns`, `shadows`, `conflicts`, `requires-tool`, `references`, `invokes`, `declared-in`. All derived purely from the parsed harness, no extra IO.
+- **Blueprint graph** — react-flow + ELK layout with **Claude Code in the middle** and the harness composed left → right in load order. Custom Card nodes per kind, colored animated relationship edges, search, layout switcher, plugin/env/permission toggles, MiniMap. Heavy categories (memory, plugins, …) auto-collapse to summary cards on first load — click any card to expand it inline.
+- **Seven relationship edge kinds** — `owns`, `overrides`, `conflicts`, `requires-tool`, `references`, `invokes`, `declared-in`. All derived purely from the parsed harness, no extra IO. `overrides` and `conflicts` render in bold gold/red so override resolution and policy collisions are unmissable.
 - **Static analyzer** — five inconsistency rules surfaced via the standard `Problems` panel and a dedicated *Inconsistencies* sidebar category. Nodes flagged by the analyzer get a red badge in the graph.
 - **Sessions watcher** — tails `~/.claude/projects/<slug>/*.jsonl` for the active workspace and pings you when Claude Code is waiting on `AskUserQuestion`, `ExitPlanMode`, or a permission request.
 
@@ -90,16 +90,12 @@ npm run package      # build .vsix
 
 The repo holds two TypeScript projects: the extension (`src/`, Node CJS) and the React WebView (`media/blueprint/`, browser IIFE). Both are bundled by `esbuild.config.mjs`.
 
-## Known limitations
-
-- On a busy harness (many enabled plugins + memory entries), the Blueprint can still spill past one viewport even with `Show plugin skills`, `env`, and `permissions` toggled off. Use the **Fit** button or the controls panel to reframe; the underlying density work is on the v0.2 roadmap.
-
 ## Roadmap
 
-- **Density-first re-layout** — collapse heavy categories (pluginGroup, memory) into summary cards by default, click to expand a single category in place.
 - Click-to-focus subgraph (1-2 hop neighborhood around a selected node).
 - Edge-kind filter chips on the toolbar (toggle `invokes`, `overrides`, `requires-tool`, etc. independently).
 - Selected-node detail panel with incoming / outgoing edge listing.
+- Smarter edge aggregation when categories collapse (e.g. "12 references → MCP github" instead of the deduped single arrow we draw today).
 - Slack-webhook variant of the input-required notification.
 - Plugin → Hook / MCP `owns` extraction (parser extension).
 - Memory-to-memory cross-reference detection.

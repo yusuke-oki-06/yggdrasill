@@ -45,7 +45,10 @@ the unique view of how your Claude Code harness pieces actually connect.
   category compound are sorted by source precedence (project > local
   > user > plugin) so the higher-priority definition sits on top.
 - Compound `categoryGroup` parent nodes give every kind a labeled visual
-  container with kind-tinted gradients.
+  container with kind-tinted gradients. Categories with more than 15
+  children (memory, plugins, tools, …) auto-collapse to a summary card
+  on first render; clicking the card expands the category inline. The
+  search box temporarily expands every category so hits remain visible.
 - Toolbar: search filter, layout direction (left → right / top → bottom),
   and toggles for plugin skills / env / permissions (off by default to
   reduce noise; toggling re-renders).
@@ -96,8 +99,8 @@ the unique view of how your Claude Code harness pieces actually connect.
   both duplicated the namespace plugin grouping under Skills and the
   `plugin.missing-install` analyzer.
 
-### Known issues
-- Blueprint density: a busy harness (lots of enabled plugins + memory)
-  can still spill past one viewport even with all default filters
-  applied. Compact-by-default collapsing of heavy categories is
-  scheduled for v0.2.
+### Fixed
+- Blueprint edges no longer dangle when a category is collapsed: each
+  edge whose endpoint sits inside a collapsed compound is rerouted to
+  the parent categoryGroup (with deduplication) instead of being passed
+  to ELK and crashing the layout.

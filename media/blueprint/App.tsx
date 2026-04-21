@@ -150,8 +150,16 @@ function Inner({ vscode }: AppProps): JSX.Element {
       byKind.set(k, arr);
     }
 
+    // While searching, force every heavy category open so hits don't get
+    // hidden inside a collapsed summary card.
+    const forceExpandAll = q.length > 0;
+
     const groupNodes: Node<CategoryGroupData>[] = [];
     const wiredEntities: Node<HarnessNodeData>[] = [];
+    // Maps a collapsed entity id to the categoryGroup it lives in, so edges
+    // pointing at it can be rerouted to the visible parent instead of being
+    // dropped (or worse, breaking ELK with a dangling reference).
+    const collapsedRedirect = new Map<string, string>();
     for (const [kind, list] of byKind) {
       if (SOLO_KINDS.has(kind) || list.length < MIN_GROUP_SIZE) {
         wiredEntities.push(...list);
@@ -159,7 +167,7 @@ function Inner({ vscode }: AppProps): JSX.Element {
       }
       const groupId = `categoryGroup::${kind}`;
       const isHeavy = list.length > AUTO_COLLAPSE_THRESHOLD;
-      const isExpanded = expandedKinds.has(kind);
+      const isExpanded = expandedKinds.has(kind) || forceExpandAll;
       const isCollapsed = isHeavy && !isExpanded;
       groupNodes.push({
         id: groupId,
@@ -173,7 +181,10 @@ function Inner({ vscode }: AppProps): JSX.Element {
         },
         zIndex: -1,
       });
-      if (isCollapsed) continue;
+      if (isCollapsed) {
+        for (const e of list) collapsedRedirect.set(e.id, groupId);
+        continue;
+      }
       const sorted = [...list].sort((a, b) => {
         const sa = SOURCE_ORDER[a.data.payload.source ?? "project"] ?? 99;
         const sb = SOURCE_ORDER[b.data.payload.source ?? "project"] ?? 99;
@@ -191,31 +202,45 @@ function Inner({ vscode }: AppProps): JSX.Element {
       ...wiredEntities,
     ];
 
-    const baseEdges: Edge[] = rawEdges.map((data) => ({
-      id: data.id,
-      source: data.source,
-      target: data.target,
-      label: data.kind === "relationship" ? data.relation : undefined,
-      animated: data.kind === "relationship",
-      style:
-        data.kind === "relationship"
-          ? {
-              stroke: RELATION_COLOR[data.relation] ?? "#a855f7",
-              strokeWidth: RELATION_WIDTH[data.relation] ?? 1.6,
-            }
-          : { stroke: "rgba(150,150,150,0.3)", strokeWidth: 0.8 },
-      labelStyle: {
-        fontSize: data.relation === "overrides" || data.relation === "conflicts" ? 11 : 10,
-        fill:
-          data.relation === "overrides"
-            ? "#fde68a"
-            : data.relation === "conflicts"
-              ? "#fecaca"
-              : "#cbd5f5",
-        fontWeight: data.relation === "overrides" || data.relation === "conflicts" ? 600 : 400,
-      },
-      labelBgStyle: { fill: "rgba(15,23,42,0.85)" },
-    }));
+    // Build the edge list against the visible nodes, redirecting any edge
+    // whose endpoint was collapsed to the parent group and deduping.
+    const visibleIds = new Set(baseNodes.map((n) => n.id));
+    const seenEdgeKeys = new Set<string>();
+    const baseEdges: Edge[] = [];
+    for (const data of rawEdges) {
+      const source = collapsedRedirect.get(data.source) ?? data.source;
+      const target = collapsedRedirect.get(data.target) ?? data.target;
+      if (source === target) continue;
+      if (!visibleIds.has(source) || !visibleIds.has(target)) continue;
+      const key = `${source}->${target}::${data.relation}`;
+      if (seenEdgeKeys.has(key)) continue;
+      seenEdgeKeys.add(key);
+      baseEdges.push({
+        id: key,
+        source,
+        target,
+        label: data.kind === "relationship" ? data.relation : undefined,
+        animated: data.kind === "relationship",
+        style:
+          data.kind === "relationship"
+            ? {
+                stroke: RELATION_COLOR[data.relation] ?? "#a855f7",
+                strokeWidth: RELATION_WIDTH[data.relation] ?? 1.6,
+              }
+            : { stroke: "rgba(150,150,150,0.3)", strokeWidth: 0.8 },
+        labelStyle: {
+          fontSize: data.relation === "overrides" || data.relation === "conflicts" ? 11 : 10,
+          fill:
+            data.relation === "overrides"
+              ? "#fde68a"
+              : data.relation === "conflicts"
+                ? "#fecaca"
+                : "#cbd5f5",
+          fontWeight: data.relation === "overrides" || data.relation === "conflicts" ? 600 : 400,
+        },
+        labelBgStyle: { fill: "rgba(15,23,42,0.85)" },
+      });
+    }
 
     if (baseNodes.length === 0) {
       setGraphNodes([]);
