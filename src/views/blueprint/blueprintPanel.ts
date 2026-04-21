@@ -43,8 +43,7 @@ export class BlueprintPanel {
         retainContextWhenHidden: true,
         localResourceRoots: [
           vscode.Uri.joinPath(context.extensionUri, "media"),
-          vscode.Uri.joinPath(context.extensionUri, "node_modules", "cytoscape", "dist"),
-          vscode.Uri.joinPath(context.extensionUri, "node_modules", "cytoscape-fcose"),
+          vscode.Uri.joinPath(context.extensionUri, "dist"),
         ],
       },
     );
@@ -107,28 +106,13 @@ export class BlueprintPanel {
 
   private async renderShell(): Promise<void> {
     const webview = this.panel.webview;
-    const mediaUri = vscode.Uri.joinPath(this.context.extensionUri, "media");
-    const cytoscapeUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        this.context.extensionUri,
-        "node_modules",
-        "cytoscape",
-        "dist",
-        "cytoscape.min.js",
-      ),
+    const scriptUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this.context.extensionUri, "dist", "blueprint.js"),
     );
-    const fcoseUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        this.context.extensionUri,
-        "node_modules",
-        "cytoscape-fcose",
-        "cytoscape-fcose.js",
-      ),
+    const styleUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this.context.extensionUri, "dist", "blueprint.css"),
     );
-    const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(mediaUri, "graph.js"));
-    const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(mediaUri, "graph.css"));
-
-    const htmlPath = path.join(this.context.extensionPath, "media", "graph.html");
+    const htmlPath = path.join(this.context.extensionPath, "media", "blueprint", "index.html");
     const raw = await fs.readFile(htmlPath, "utf8");
     const nonce = randomNonce();
     const csp = [
@@ -142,8 +126,6 @@ export class BlueprintPanel {
     this.panel.webview.html = raw
       .replaceAll("{{CSP}}", csp)
       .replaceAll("{{NONCE}}", nonce)
-      .replaceAll("{{CYTOSCAPE_URI}}", cytoscapeUri.toString())
-      .replaceAll("{{FCOSE_URI}}", fcoseUri.toString())
       .replaceAll("{{SCRIPT_URI}}", scriptUri.toString())
       .replaceAll("{{STYLE_URI}}", styleUri.toString());
   }

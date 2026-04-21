@@ -2,12 +2,16 @@
 .vscode-test/**
 src/**
 test/**
+media/blueprint/**
+media/candidates/**
 .gitignore
 .eslintrc.json
 .prettierrc.json
 tsconfig.json
+tsconfig.blueprint.json
 esbuild.config.mjs
 **/*.ts.map
+**/*.tsx
 **/*.ts
 **/.DS_Store
 node_modules/**

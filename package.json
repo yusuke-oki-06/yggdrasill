@@ -106,15 +106,16 @@
     "vscode:prepublish": "npm run build",
     "build": "node esbuild.config.mjs --production",
     "dev": "node esbuild.config.mjs --watch",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.blueprint.json",
     "lint": "eslint src --ext .ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "package": "vsce package"
   },
   "devDependencies": {
-    "@types/cytoscape": "^3.21.9",
     "@types/node": "^20.11.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "@types/vscode": "^1.90.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
@@ -126,10 +127,12 @@
     "vitest": "^1.5.0"
   },
   "dependencies": {
-    "cytoscape": "^3.33.2",
-    "cytoscape-fcose": "^2.2.0",
+    "@dagrejs/dagre": "^3.0.0",
+    "@xyflow/react": "^12.10.2",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
     "zod": "^3.23.0"
   }
 }
