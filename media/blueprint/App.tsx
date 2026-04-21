@@ -48,6 +48,9 @@ const NODE_TYPES = { harness: HarnessNode, categoryGroup: CategoryGroupNode };
 // kept independent so cross-category edges read cleanly).
 const SOLO_KINDS = new Set<string>(["workspace"]);
 const MIN_GROUP_SIZE = 2;
+// When a category compound has this many children, render it collapsed by
+// default. Click the group card to expand it inline.
+const AUTO_COLLAPSE_THRESHOLD = 15;
 
 // Sort entities within a compound by source precedence so the highest-priority
 // entries (project overrides) sit at the top of each category column.
@@ -85,6 +88,7 @@ function Inner({ vscode }: AppProps): JSX.Element {
   const [graphEdges, setGraphEdges] = useState<Edge[]>([]);
   const [stats, setStats] = useState("");
   const [layoutBusy, setLayoutBusy] = useState(false);
+  const [expandedKinds, setExpandedKinds] = useState<Set<string>>(new Set());
   const flow = useReactFlow();
   const sentRef = useRef<{ plugins?: boolean; env?: boolean; perms?: boolean }>({});
 
@@ -154,6 +158,9 @@ function Inner({ vscode }: AppProps): JSX.Element {
         continue;
       }
       const groupId = `categoryGroup::${kind}`;
+      const isHeavy = list.length > AUTO_COLLAPSE_THRESHOLD;
+      const isExpanded = expandedKinds.has(kind);
+      const isCollapsed = isHeavy && !isExpanded;
       groupNodes.push({
         id: groupId,
         type: "categoryGroup",
@@ -162,9 +169,11 @@ function Inner({ vscode }: AppProps): JSX.Element {
           kind,
           count: list.length,
           layer: LOADING_LAYER[kind] ?? 3,
+          collapsed: isCollapsed,
         },
         zIndex: -1,
       });
+      if (isCollapsed) continue;
       const sorted = [...list].sort((a, b) => {
         const sa = SOURCE_ORDER[a.data.payload.source ?? "project"] ?? 99;
         const sb = SOURCE_ORDER[b.data.payload.source ?? "project"] ?? 99;
@@ -272,11 +281,21 @@ function Inner({ vscode }: AppProps): JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [rawNodes, rawEdges, issueIds, filters.query, filters.layout]);
+  }, [rawNodes, rawEdges, issueIds, filters.query, filters.layout, expandedKinds]);
 
   const onNodeClick: NodeMouseHandler = useCallback(
     (_, node) => {
-      if (node.type !== "harness") return;
+      if (node.type === "categoryGroup") {
+        const kind = (node.data as CategoryGroupData | undefined)?.kind;
+        if (!kind) return;
+        setExpandedKinds((prev) => {
+          const next = new Set(prev);
+          if (next.has(kind)) next.delete(kind);
+          else next.add(kind);
+          return next;
+        });
+        return;
+      }
       const data = node.data as HarnessNodeData | undefined;
       const path = data?.payload?.path;
       if (path) post(vscode, { type: "openFile", path });

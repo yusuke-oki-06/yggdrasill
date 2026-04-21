@@ -102,11 +102,23 @@ export async function layoutNodes<T extends Record<string, unknown>>(
     });
   }
 
-  // categoryGroup parents with their children nested
+  // categoryGroup parents with their children nested. When collapsed (no
+  // children passed in) they render as a compact summary card instead of a
+  // container, so we give ELK a sized leaf to lay out.
   for (const p of parents) {
     const groupKind = ((p.data as { kind?: string })?.kind ?? "skill") as string;
     const layer = LOADING_LAYER[groupKind] ?? 3;
-    const inner = (childrenByParent.get(p.id) ?? []).map((c) => ({
+    const kids = childrenByParent.get(p.id) ?? [];
+    if (kids.length === 0) {
+      elkChildren.push({
+        id: p.id,
+        width: 170,
+        height: 68,
+        layoutOptions: { "elk.partitioning.partition": String(layer) },
+      });
+      continue;
+    }
+    const inner = kids.map((c) => ({
       id: c.id,
       width: NODE_W[groupKind] ?? 180,
       height: NODE_H[groupKind] ?? 80,
@@ -115,7 +127,7 @@ export async function layoutNodes<T extends Record<string, unknown>>(
       id: p.id,
       layoutOptions: {
         "elk.partitioning.partition": String(layer),
-        "elk.padding": "[top=30,left=10,bottom=10,right=10]",
+        "elk.padding": "[top=26,left=8,bottom=8,right=8]",
         "elk.algorithm": "layered",
         "elk.direction": "DOWN",
         "elk.aspectRatio": "0.5",

@@ -37,11 +37,34 @@ export interface CategoryGroupData extends Record<string, unknown> {
   kind: string;
   count: number;
   layer: number;
+  collapsed: boolean;
 }
 
 export function CategoryGroupNode({ data }: NodeProps): JSX.Element {
   const d = data as CategoryGroupData;
   const accent = KIND_ACCENT[d.kind] ?? "rgba(148, 163, 184, 0.5)";
+  const label = KIND_LABEL[d.kind] ?? d.kind;
+
+  if (d.collapsed) {
+    return (
+      <div
+        className="category-group collapsed"
+        style={{
+          borderColor: accent,
+          background: `linear-gradient(180deg, ${withAlpha(accent, 0.28)} 0%, ${withAlpha(accent, 0.1)} 100%)`,
+        }}
+        title={`${d.count} ${label.toLowerCase()} — click to expand`}
+      >
+        <div className="cg-summary" style={{ color: accent }}>
+          <span className="cg-caret">▸</span>
+          <span className="cg-label">{label}</span>
+          <span className="cg-count">{d.count}</span>
+        </div>
+        <div className="cg-hint">click to expand</div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="category-group"
@@ -51,7 +74,8 @@ export function CategoryGroupNode({ data }: NodeProps): JSX.Element {
       }}
     >
       <div className="cg-header" style={{ color: accent }}>
-        <span className="cg-label">{KIND_LABEL[d.kind] ?? d.kind}</span>
+        <span className="cg-caret">▾</span>
+        <span className="cg-label">{label}</span>
         <span className="cg-count">{d.count}</span>
         <span className="cg-layer">layer {d.layer}</span>
       </div>
@@ -60,6 +84,5 @@ export function CategoryGroupNode({ data }: NodeProps): JSX.Element {
 }
 
 function withAlpha(rgba: string, alpha: number): string {
-  // expects "rgba(r,g,b,a)" — replace last value with alpha
   return rgba.replace(/,\s*[\d.]+\)$/, `,${alpha})`);
 }
