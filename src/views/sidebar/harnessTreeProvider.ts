@@ -7,7 +7,6 @@ export type Category =
   | "hooks"
   | "mcpServers"
   | "memory"
-  | "plugins"
   | "permissions"
   | "rules"
   | "claudeMd"
@@ -40,7 +39,6 @@ const CATEGORY_LABEL: Record<Category, string> = {
   hooks: "Hooks",
   mcpServers: "MCP Servers",
   memory: "Memory",
-  plugins: "Plugins",
   permissions: "Permissions",
   rules: "Rules",
   claudeMd: "CLAUDE.md / AGENTS.md",
@@ -53,7 +51,6 @@ const CATEGORY_BY_SOURCE: ReadonlySet<Category> = new Set<Category>([
   "skills",
   "hooks",
   "mcpServers",
-  "plugins",
   "permissions",
   "rules",
   "claudeMd",
@@ -222,8 +219,6 @@ export class HarnessTreeProvider implements vscode.TreeDataProvider<HarnessNode>
         return h.mcpServers.length;
       case "memory":
         return h.memory.length;
-      case "plugins":
-        return h.plugins.length;
       case "permissions":
         return h.permissions.length;
       case "rules":
@@ -303,9 +298,6 @@ function sourcesForCategory(category: Category, h: Harness): Map<Source, number>
     case "mcpServers":
       h.mcpServers.forEach((s) => bump(s.source));
       break;
-    case "plugins":
-      h.plugins.forEach((s) => bump(s.source));
-      break;
     case "permissions":
       h.permissions.forEach((s) => bump(s.source));
       break;
@@ -361,12 +353,6 @@ function leavesFor(category: Category, h: Harness, filter?: Source): HarnessNode
         tooltip: m.description ?? m.path,
         resource: vscode.Uri.file(m.path),
       }));
-    case "plugins":
-      return pick(h.plugins).map((p) => ({
-        kind: "leaf" as const,
-        label: p.name,
-        description: `${p.enabled ? "enabled" : "disabled"} · ${p.source}`,
-      }));
     case "permissions":
       return pick(h.permissions).map((p) => ({
         kind: "leaf" as const,
@@ -415,8 +401,6 @@ function iconForCategory(category: Category): string {
       return "plug";
     case "memory":
       return "database";
-    case "plugins":
-      return "extensions";
     case "permissions":
       return "lock";
     case "rules":
