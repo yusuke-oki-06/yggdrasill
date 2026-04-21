@@ -4,6 +4,8 @@ src/**
 test/**
 media/blueprint/**
 media/candidates/**
+media/yggdrasil-icon.svg
+scripts/**
 .gitignore
 .eslintrc.json
 .prettierrc.json
@@ -16,7 +18,8 @@ esbuild.config.mjs
 **/.DS_Store
 node_modules/**
 .claude/**
-.mcp.json
+.serena/**
 .serena-home/**
+.mcp.json
 CLAUDE.md
 AGENTS.md

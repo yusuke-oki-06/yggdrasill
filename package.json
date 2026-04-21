@@ -1,17 +1,22 @@
 {
   "name": "yggdrasil",
   "displayName": "Yggdrasil",
-  "description": "Visualize Claude Code harness — skills, hooks, tools, MCP, memory, settings — in one graph. Multi-project blueprint viewer with inconsistency detection and input-required notifications.",
-  "version": "0.0.1",
+  "description": "Harness relationship graph for Claude Code, inside VS Code. Skills, hooks, MCP, memory, plugins — and how they connect.",
+  "version": "0.1.0",
   "license": "MIT",
-  "publisher": "koori",
+  "publisher": "yusuke-oki-06",
   "author": {
-    "name": "yusuke"
+    "name": "yusuke-oki-06"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/koori/yggdrasil"
+    "url": "https://github.com/yusuke-oki-06/yggdrasil"
   },
+  "bugs": {
+    "url": "https://github.com/yusuke-oki-06/yggdrasil/issues"
+  },
+  "homepage": "https://github.com/yusuke-oki-06/yggdrasil#readme",
+  "icon": "media/yggdrasil-icon.png",
   "engines": {
     "vscode": "^1.90.0",
     "node": ">=20"
@@ -23,11 +28,14 @@
   "keywords": [
     "claude-code",
     "harness",
+    "relationship",
+    "graph",
+    "blueprint",
     "skills",
     "hooks",
     "mcp",
-    "observability",
-    "blueprint"
+    "memory",
+    "observability"
   ],
   "main": "./dist/extension.js",
   "activationEvents": [
