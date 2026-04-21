@@ -35,19 +35,28 @@ const NODE_H: Record<string, number> = {
   env: 50,
 };
 
-// Loading order (left -> right) reflecting how Claude Code actually
-// composes a session: foundation context first, then declarations,
-// then composed entities, finally runtime/boundary artifacts.
+// Loading order (left -> right) with Claude Code itself as the central
+// destination. Declarations and composed entities sit to its left in the
+// order Claude reads them; runtime artifacts sit to its right in the order
+// Claude triggers them.
+//
+//   L0 foundation context   ->  CLAUDE.md, rules
+//   L1 declared sources     ->  plugins, env
+//   L2 composed entities    ->  skills, MCP servers, memory
+//   L3 the assembled agent  ->  Claude Code (workspace node)
+//   L4 event handlers       ->  hooks
+//   L5 runtime invocations  ->  tools, permissions
+//   L6 declaration sources  ->  config files
 export const LOADING_LAYER: Record<string, number> = {
-  workspace: 0,
-  claudeMd: 1,
-  rule: 1,
-  plugin: 2,
-  pluginGroup: 2,
-  env: 2,
-  skill: 3,
-  mcp: 3,
-  memory: 3,
+  claudeMd: 0,
+  rule: 0,
+  plugin: 1,
+  pluginGroup: 1,
+  env: 1,
+  skill: 2,
+  mcp: 2,
+  memory: 2,
+  workspace: 3,
   hook: 4,
   tool: 5,
   permission: 5,

@@ -73,9 +73,10 @@ export function buildGraph(harness: Harness, options: BuildOptions = {}): GraphE
   push({
     data: {
       id: workspaceId,
-      label: basename(harness.workspace) || "workspace",
+      label: "Claude Code",
       kind: "workspace",
       path: harness.workspace,
+      description: basename(harness.workspace) || "workspace",
     },
   });
 
@@ -90,7 +91,7 @@ export function buildGraph(harness: Harness, options: BuildOptions = {}): GraphE
         path: doc.path,
       },
     });
-    edges.push(edgeFor(workspaceId, id, "defines"));
+    edges.push(edgeFor(id, workspaceId, "defines"));
   }
 
   // Note: harness.plugins (settings.json:enabledPlugins) is intentionally NOT
@@ -114,7 +115,7 @@ export function buildGraph(harness: Harness, options: BuildOptions = {}): GraphE
         path: mcp.path,
       },
     });
-    edges.push(edgeFor(workspaceId, id, "connects"));
+    edges.push(edgeFor(id, workspaceId, "connects"));
     if (includeEnv) {
       for (const envKey of mcp.envKeys) {
         const envId = nodeId("env", envKey);
@@ -145,7 +146,7 @@ export function buildGraph(harness: Harness, options: BuildOptions = {}): GraphE
         path: hook.path,
       },
     });
-    edges.push(edgeFor(workspaceId, id, "fires"));
+    edges.push(edgeFor(workspaceId, id, "triggers"));
   }
 
   for (const mem of harness.memory) {
@@ -160,7 +161,7 @@ export function buildGraph(harness: Harness, options: BuildOptions = {}): GraphE
         path: mem.path,
       },
     });
-    edges.push(edgeFor(workspaceId, id, "remembers"));
+    edges.push(edgeFor(id, workspaceId, "informs"));
   }
 
   if (includePermissions) {
@@ -190,7 +191,7 @@ export function buildGraph(harness: Harness, options: BuildOptions = {}): GraphE
         path: rule.path,
       },
     });
-    edges.push(edgeFor(workspaceId, id, "documents"));
+    edges.push(edgeFor(id, workspaceId, "constrains"));
   }
 
   appendRelationships(harness, nodes, edges, seen);
@@ -269,7 +270,7 @@ function addSkills(
         path: skill.path,
       },
     });
-    edges.push(edgeFor(workspaceId, id, "provides"));
+    edges.push(edgeFor(id, workspaceId, "extends"));
   }
 
   const pluginSkills = harness.skills.filter((s) => s.source === "plugin");
@@ -300,7 +301,7 @@ function addSkills(
         description: `${namespace} · ${items.length} skill${items.length > 1 ? "s" : ""}`,
       },
     });
-    edges.push(edgeFor(workspaceId, groupId, "hosts"));
+    edges.push(edgeFor(groupId, workspaceId, "extends"));
 
     if (!includePluginSkills) continue;
 

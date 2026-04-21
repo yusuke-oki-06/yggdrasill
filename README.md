@@ -1,40 +1,103 @@
 # Yggdrasil
 
-> Visualize the Claude Code harness — skills, hooks, tools, MCP, memory, settings — as one graph.
+> **Harness relationship graph for Claude Code, inside VS Code.**
 
-Yggdrasil (ユグドラシル) is a VS Code extension that turns your Claude Code workspace into a navigable graph. Named after the Norse world tree that connects the nine realms, it renders how your `skills`, `hooks`, `tools`, `MCP servers`, `memory`, and `settings` interlock — across every project you work in.
+Yggdrasil walks your active workspace, reads every Claude Code surface (`settings.json`, `CLAUDE.md`, `AGENTS.md`, `.mcp.json`, `skills/`, `memory/`, hooks, plugins, permissions), and renders **how they connect** — not just *what exists*.
 
-## Why
+![Blueprint hero](media/screenshots/blueprint-full.png)
 
-Claude Code has rich configuration surfaces (`settings.json`, `CLAUDE.md`, `skills/`, `hooks`, `.mcp.json`, memory), and the community already offers great tools for sessions (wmux, cmux, official Desktop), events (disler observability), and skill dependencies (skill-deps, SkillsMP). What is still missing is a **holistic, multi-project blueprint viewer**: one place to see the entire harness, spot inconsistencies, and get notified when a session needs your attention. Yggdrasil fills that gap.
+## Why another Claude Code tool?
 
-## Status
+There are already great extensions for browsing skills, listing MCP servers, and tracking session activity. None of them show **relationships**. A skill says it `requires-tool Bash` — which one? A plugin claims to *own* a skill — show me the link. A permission `allow` and a `deny` collide on the same pattern — make it impossible to miss. That is the gap Yggdrasil fills.
 
-**v0.0.1 — scaffold.** Hello World command only. See `docs/` and the roadmap below.
+| | Browse | Tree | Graph | Relationships | Inside VS Code |
+|---|---|---|---|---|---|
+| CCO (mcpware) | ✓ | ✓ | — | — | — |
+| Claude Code Tool Manager | ✓ | ✓ | — | — | — |
+| Claudia / opcode | ✓ | — | — | — | — |
+| Other VS Code skill browsers | ✓ | ✓ | — | — | ✓ |
+| **Yggdrasil** | ✓ | ✓ | ✓ | ✓ | ✓ |
 
-## Features (planned v0.1)
+## Features
 
-1. **Harness Parser** — reads `settings.json`, `skills/**/*.md`, `.mcp.json`, `MEMORY.md`, hooks, permissions, and plugins into a single model.
-2. **Blueprint Graph** — Cytoscape-powered graph of the entire harness with search, filter, and click-to-open.
-3. **Inconsistency Detector** — static analysis that surfaces missing plugins, broken MCP env vars, duplicate skill names, orphaned memory refs, etc.
-4. **Multi-project Support** — works across VS Code multi-root workspaces.
-5. **Input-Required Notification** — watches session logs and pings you when Claude Code is waiting on a question, plan approval, or permission.
+- **Harness parser** — merges every layer of Claude Code config (user / project / local / plugin) into one validated model, capturing skill frontmatter and SKILL.md body references.
+- **Sidebar Harness tree** — every category (Skills, Hooks, MCP, Memory, Permissions, Rules, CLAUDE.md, Env) with source grouping and per-plugin namespace folders. ![Sidebar](media/screenshots/sidebar.png)
+- **Blueprint graph** — react-flow + ELK layout. Workspace on the left, then layered columns flowing in the order Claude Code actually loads things. Custom Card nodes per kind, colored animated relationship edges, search, layout switcher, plugin/env/permission toggles, MiniMap.
+- **Seven relationship edge kinds** — `owns`, `shadows`, `conflicts`, `requires-tool`, `references`, `invokes`, `declared-in`. All derived purely from the parsed harness, no extra IO.
+- **Static analyzer** — five inconsistency rules surfaced via the standard `Problems` panel and a dedicated *Inconsistencies* sidebar category. Nodes flagged by the analyzer get a red badge in the graph.
+- **Sessions watcher** — tails `~/.claude/projects/<slug>/*.jsonl` for the active workspace and pings you when Claude Code is waiting on `AskUserQuestion`, `ExitPlanMode`, or a permission request.
 
-## Commands
+## Install
 
-- `Yggdrasil: Hello`
-- `Yggdrasil: Open Blueprint` *(coming in Phase 2)*
+While in preview:
+
+```bash
+code --install-extension yggdrasil-0.1.0.vsix
+```
+
+After Marketplace publish:
+
+```
+ext install yusuke-oki-06.yggdrasil
+```
+
+## Quickstart
+
+1. Open any Claude Code workspace in VS Code.
+2. Click the 🌳 **Yggdrasil** icon in the Activity Bar.
+3. From the sidebar header, run **`Yggdrasil: Open Blueprint`** (or use the command palette).
+4. Use the toolbar to filter, switch layout direction, or reveal plugin skills / env vars / permissions.
+
+## Settings
+
+| | Default | Description |
+|---|---|---|
+| `yggdrasil.notifications.enabled` | `true` | Show a notification when a Claude Code session needs your input. |
+| `yggdrasil.parser.memoryRoot` | `""` | Override the inferred Claude Code memory directory. |
+
+## Inconsistency rules
+
+| Rule | Severity | Triggers |
+|---|---|---|
+| `skill.duplicate-name` | warning | Two skills share the same `name`. |
+| `skill.missing-description` | warning | A skill has no `description` in frontmatter. |
+| `mcp.missing-env` | warning | An MCP server references `${KEY}` that is not in `settings.json` or the shell. |
+| `hook.empty-command` | warning | A hook entry has no command to run. |
+| `plugin.missing-install` | warning | An enabled plugin is missing from `~/.claude/plugins/cache/`. |
+
+## Loading-order layout
+
+The Blueprint puts **Claude Code itself in the middle**, with the harness flowing into it from the left and the runtime triggering out to the right:
+
+```
+CLAUDE.md / rules  →  plugins / env  →  skills / MCP / memory  →  Claude Code  →  hooks  →  tools / permissions  →  config files
+       L0                  L1                    L2                     L3            L4              L5                 L6
+   foundation         declared            composed                 assembled       events         runtime              meta
+```
+
+Visual position teaches the system. Skills sit *to the left of* Claude (loaded into it); hooks sit *to the right* (triggered by it). Within each category column, entries are sorted by **source precedence** — project overrides at the top, then local, user, plugin — and prominent **`overrides`** edges connect higher-priority entries to the ones they shadow so you can see at a glance which definition wins.
 
 ## Development
 
 ```bash
 npm install
-npm run dev          # esbuild watch
-# F5 in VS Code      # launch Extension Development Host
+npm run dev          # esbuild watch (extension + WebView bundle)
+# Press F5 in VS Code to launch an Extension Development Host
 npm run typecheck
 npm test
 npm run package      # build .vsix
 ```
+
+The repo holds two TypeScript projects: the extension (`src/`, Node CJS) and the React WebView (`media/blueprint/`, browser IIFE). Both are bundled by `esbuild.config.mjs`.
+
+## Roadmap
+
+- Click-to-focus subgraph (1-2 hop neighborhood around a selected node).
+- Edge-kind filter chips on the toolbar (toggle `invokes`, `shadows`, etc. independently).
+- Selected-node detail panel with incoming / outgoing edge listing.
+- Slack-webhook variant of the input-required notification.
+- Plugin → Hook / MCP `owns` extraction (parser extension).
+- Memory-to-memory cross-reference detection.
 
 ## License
 

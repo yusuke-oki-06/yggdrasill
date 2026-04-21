@@ -108,7 +108,7 @@ function collectShadows<T extends ShadowItem>(
     const top = sorted[0];
     for (let i = 1; i < sorted.length; i++) {
       if (sorted[i].source === top.source) continue;
-      push(makeEdge(`${kind}::${top.id}`, `${kind}::${sorted[i].id}`, "shadows"));
+      push(makeEdge(`${kind}::${top.id}`, `${kind}::${sorted[i].id}`, "overrides"));
     }
   }
 }

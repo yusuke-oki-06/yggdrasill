@@ -24,12 +24,22 @@ import type {
 
 const RELATION_COLOR: Record<string, string> = {
   owns: "#2dd4bf",
-  shadows: "#f59e0b",
+  overrides: "#f59e0b",
   conflicts: "#ef4444",
   "requires-tool": "#22d3ee",
   references: "#a855f7",
   invokes: "#84cc16",
   "declared-in": "#94a3b8",
+};
+
+const RELATION_WIDTH: Record<string, number> = {
+  overrides: 3,
+  conflicts: 3,
+  owns: 1.4,
+  "requires-tool": 1.6,
+  references: 1.6,
+  invokes: 1.6,
+  "declared-in": 1.2,
 };
 
 const NODE_TYPES = { harness: HarnessNode, categoryGroup: CategoryGroupNode };
@@ -38,6 +48,15 @@ const NODE_TYPES = { harness: HarnessNode, categoryGroup: CategoryGroupNode };
 // kept independent so cross-category edges read cleanly).
 const SOLO_KINDS = new Set<string>(["workspace"]);
 const MIN_GROUP_SIZE = 2;
+
+// Sort entities within a compound by source precedence so the highest-priority
+// entries (project overrides) sit at the top of each category column.
+const SOURCE_ORDER: Record<string, number> = {
+  project: 0,
+  local: 1,
+  user: 2,
+  plugin: 3,
+};
 
 interface AppProps {
   vscode: VsCodeApi;
@@ -146,7 +165,13 @@ function Inner({ vscode }: AppProps): JSX.Element {
         },
         zIndex: -1,
       });
-      for (const e of list) {
+      const sorted = [...list].sort((a, b) => {
+        const sa = SOURCE_ORDER[a.data.payload.source ?? "project"] ?? 99;
+        const sb = SOURCE_ORDER[b.data.payload.source ?? "project"] ?? 99;
+        if (sa !== sb) return sa - sb;
+        return a.data.payload.label.localeCompare(b.data.payload.label);
+      });
+      for (const e of sorted) {
         wiredEntities.push({ ...e, parentId: groupId, extent: "parent" });
       }
     }
@@ -167,10 +192,19 @@ function Inner({ vscode }: AppProps): JSX.Element {
         data.kind === "relationship"
           ? {
               stroke: RELATION_COLOR[data.relation] ?? "#a855f7",
-              strokeWidth: 2,
+              strokeWidth: RELATION_WIDTH[data.relation] ?? 1.6,
             }
           : { stroke: "rgba(150,150,150,0.3)", strokeWidth: 0.8 },
-      labelStyle: { fontSize: 10, fill: "#cbd5f5" },
+      labelStyle: {
+        fontSize: data.relation === "overrides" || data.relation === "conflicts" ? 11 : 10,
+        fill:
+          data.relation === "overrides"
+            ? "#fde68a"
+            : data.relation === "conflicts"
+              ? "#fecaca"
+              : "#cbd5f5",
+        fontWeight: data.relation === "overrides" || data.relation === "conflicts" ? 600 : 400,
+      },
       labelBgStyle: { fill: "rgba(15,23,42,0.85)" },
     }));
 

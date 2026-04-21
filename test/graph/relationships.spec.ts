@@ -29,7 +29,7 @@ describe("buildRelationships", () => {
     expect(owns[0].data.kind).toBe("relationship");
   });
 
-  it("emits shadows edge between same-name skills with different sources", () => {
+  it("emits overrides edge between same-name skills with different sources", () => {
     const harness = makeHarness({
       skills: [
         {
@@ -48,7 +48,9 @@ describe("buildRelationships", () => {
         },
       ],
     });
-    const shadows = buildRelationships(harness).edges.filter((e) => e.data.relation === "shadows");
+    const shadows = buildRelationships(harness).edges.filter(
+      (e) => e.data.relation === "overrides",
+    );
     expect(shadows).toHaveLength(1);
     expect(shadows[0].data.source).toBe("skill::p");
     expect(shadows[0].data.target).toBe("skill::u");
