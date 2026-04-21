@@ -289,12 +289,12 @@ function Inner({ vscode }: AppProps): JSX.Element {
   }, []);
 
   const onFit = useCallback(() => {
-    flow.fitView({ duration: 250, padding: 0.2 });
+    flow.fitView({ duration: 250, padding: 0.06 });
   }, [flow]);
 
   useEffect(() => {
     if (graphNodes.length === 0) return;
-    const t = window.setTimeout(() => flow.fitView({ padding: 0.2 }), 60);
+    const t = window.setTimeout(() => flow.fitView({ padding: 0.06 }), 60);
     return () => window.clearTimeout(t);
   }, [graphNodes, flow]);
 
@@ -308,8 +308,8 @@ function Inner({ vscode }: AppProps): JSX.Element {
           nodeTypes={NODE_TYPES}
           onNodeClick={onNodeClick}
           fitView
-          fitViewOptions={{ padding: 0.2 }}
-          minZoom={0.15}
+          fitViewOptions={{ padding: 0.06 }}
+          minZoom={0.1}
           maxZoom={2.5}
           proOptions={{ hideAttribution: true }}
         >
