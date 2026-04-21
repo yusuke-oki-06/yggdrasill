@@ -2,6 +2,8 @@
 .vscode-test/**
 src/**
 test/**
+demo/**
+.playwright-mcp/**
 media/blueprint/**
 media/candidates/**
 media/yggdrasill-icon.svg

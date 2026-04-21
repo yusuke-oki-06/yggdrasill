@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yggdrasill Blueprint — demo</title>
+    <link rel="stylesheet" href="../dist/blueprint.css" />
+    <style>
+      /* Approximate a VS Code dark theme so the Card styling reads the way
+         it will inside the actual extension. */
+      :root {
+        --vscode-foreground: #d4d4d4;
+        --vscode-editor-background: #0b1020;
+        --vscode-descriptionForeground: #98a0b3;
+        --vscode-panel-border: rgba(148, 163, 184, 0.22);
+        --vscode-focusBorder: #8b5cf6;
+        --vscode-font-family: "Segoe UI", system-ui, sans-serif;
+        --vscode-input-background: rgba(30, 41, 59, 0.7);
+        --vscode-input-foreground: #e2e8f0;
+        --vscode-button-secondaryBackground: rgba(124, 58, 237, 0.25);
+        --vscode-button-secondaryForeground: #ede9fe;
+        --vscode-button-secondaryHoverBackground: rgba(124, 58, 237, 0.4);
+      }
+      html,
+      body,
+      #root {
+        height: 100vh;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      // Mock the VS Code WebView API so the bundle can call it without errors.
+      window.acquireVsCodeApi = function () {
+        return {
+          postMessage: (msg) => {
+            if (msg && msg.type === "ready" && window.__YGGDRASILL_DEMO_PAYLOAD__) {
+              // Replay the fixture payload through the same postMessage path
+              // the real extension uses.
+              window.postMessage(window.__YGGDRASILL_DEMO_PAYLOAD__, "*");
+            }
+          },
+          setState: () => {},
+          getState: () => null,
+        };
+      };
+    </script>
+    <script src="./harness-fixture.js"></script>
+    <script src="../dist/blueprint.js"></script>
+  </body>
+</html>

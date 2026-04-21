@@ -4,7 +4,7 @@
 
 Yggdrasill walks your active workspace, reads every Claude Code surface (`settings.json`, `CLAUDE.md`, `AGENTS.md`, `.mcp.json`, `skills/`, `memory/`, hooks, plugins, permissions), and renders **how they connect** — not just *what exists*.
 
-![Blueprint hero](media/screenshots/blueprint-full.png)
+![Blueprint hero](media/screenshots/blueprint-hero.png)
 
 ## Why another Claude Code tool?
 
@@ -21,7 +21,7 @@ There are already great extensions for browsing skills, listing MCP servers, and
 ## Features
 
 - **Harness parser** — merges every layer of Claude Code config (user / project / local / plugin) into one validated model, capturing skill frontmatter and SKILL.md body references.
-- **Sidebar Harness tree** — every category (Skills, Hooks, MCP, Memory, Permissions, Rules, CLAUDE.md, Env) with source grouping and per-plugin namespace folders. ![Sidebar](media/screenshots/sidebar.png)
+- **Sidebar Harness tree** — every category (Skills, Hooks, MCP, Memory, Permissions, Rules, CLAUDE.md, Env) with source grouping and per-plugin namespace folders, right inside VS Code's Activity Bar.
 - **Blueprint graph** — react-flow + ELK layout with **Claude Code in the middle** and the harness composed left → right in load order. Custom Card nodes per kind, colored animated relationship edges, search, layout switcher, plugin/env/permission toggles, MiniMap. Heavy categories (memory, plugins, …) auto-collapse to summary cards on first load — click any card to expand it inline.
 - **Seven relationship edge kinds** — `owns`, `overrides`, `conflicts`, `requires-tool`, `references`, `invokes`, `declared-in`. All derived purely from the parsed harness, no extra IO. `overrides` and `conflicts` render in bold gold/red so override resolution and policy collisions are unmissable.
 - **Static analyzer** — five inconsistency rules surfaced via the standard `Problems` panel and a dedicated *Inconsistencies* sidebar category. Nodes flagged by the analyzer get a red badge in the graph.

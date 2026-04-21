@@ -36,3 +36,10 @@ Thumbs.db
 
 # Icon/asset experiments not part of the shipped extension
 media/candidates/
+
+# Playwright MCP screenshot cache
+.playwright-mcp/
+
+# vsce publish/install logs
+install-out.log
+install-err.log
