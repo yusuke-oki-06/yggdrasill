@@ -1,0 +1,29 @@
+name: Feature request
+description: A new capability, relationship kind, inconsistency rule, or UX affordance.
+title: "[feat] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: motivation
+    attributes:
+      label: What would you use this for?
+      description: Describe the concrete harness situation you want to visualize or automate.
+      placeholder: |
+        I want to see which skills call a specific MCP server's tool so I can
+        audit tool surface before revoking access.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed shape
+      description: A sketch of the feature — new relationship edge kind, new analyzer rule, a panel, a command, etc.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What did you try, and why did it not work?

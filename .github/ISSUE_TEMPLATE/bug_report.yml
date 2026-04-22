@@ -1,0 +1,69 @@
+name: Bug report
+description: Something in the Blueprint, sidebar, analyzer, or notifications is not behaving the way it should.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file this. A short, concrete report is much more useful than a perfect one.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what did you see instead?
+      placeholder: |
+        I opened `Yggdrasill: Open Blueprint` on a workspace with ~30 memory entries.
+        Expected: the Memory category collapses with a "click to expand" card.
+        Actual: the Memory card showed but clicking it did nothing.
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Yggdrasill version
+      description: See the extension panel, or `code --list-extensions --show-versions | grep yggdrasill`.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: vscode-version
+    attributes:
+      label: VS Code version
+      description: From the Help → About menu.
+      placeholder: "1.99.x"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which area?
+      multiple: true
+      options:
+        - Blueprint graph
+        - Sidebar TreeView
+        - Inconsistency analyzer / Problems panel
+        - Input-required notification
+        - Parser (settings / MCP / memory / skills / hooks)
+        - Packaging / install
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: Ideally a workspace layout (skills/hooks/plugins counts), plus the steps.
+      render: markdown
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Output from the WebView developer tools (Cmd/Ctrl+Shift+P → "Developer: Open Webview Developer Tools") or the `Problems` panel.
+      render: shell
