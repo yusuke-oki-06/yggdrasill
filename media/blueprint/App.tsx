@@ -82,15 +82,41 @@ function deriveLayerBands(
   }
   const PAD = 28;
   const LABEL_SPACE = 34;
+  // Align every band along the direction-orthogonal axis so the whole pipeline
+  // reads as parallel stripes: in RIGHT mode all bands share the y-extent, in
+  // DOWN mode all bands share the x-extent.
+  const allBoxes: Array<{ x: number; y: number; w: number; h: number }> = [];
+  for (const boxes of byLayer.values()) allBoxes.push(...boxes);
+  if (allBoxes.length === 0) return [];
+  const globalMinX = Math.min(...allBoxes.map((b) => b.x));
+  const globalMaxX = Math.max(...allBoxes.map((b) => b.x + b.w));
+  const globalMinY = Math.min(...allBoxes.map((b) => b.y));
+  const globalMaxY = Math.max(...allBoxes.map((b) => b.y + b.h));
+
   const bands: Array<Node<LayerBandData>> = [];
   for (const [layer, boxes] of byLayer) {
     if (boxes.length === 0) continue;
     const meta = LAYER_LABELS[layer];
     if (!meta) continue;
-    const minX = Math.min(...boxes.map((b) => b.x)) - PAD;
-    const minY = Math.min(...boxes.map((b) => b.y)) - PAD - LABEL_SPACE;
-    const maxX = Math.max(...boxes.map((b) => b.x + b.w)) + PAD;
-    const maxY = Math.max(...boxes.map((b) => b.y + b.h)) + PAD;
+    const lminX = Math.min(...boxes.map((b) => b.x));
+    const lmaxX = Math.max(...boxes.map((b) => b.x + b.w));
+    const lminY = Math.min(...boxes.map((b) => b.y));
+    const lmaxY = Math.max(...boxes.map((b) => b.y + b.h));
+    let minX: number;
+    let maxX: number;
+    let minY: number;
+    let maxY: number;
+    if (direction === "RIGHT") {
+      minX = lminX - PAD;
+      maxX = lmaxX + PAD;
+      minY = globalMinY - PAD - LABEL_SPACE;
+      maxY = globalMaxY + PAD;
+    } else {
+      minX = globalMinX - PAD;
+      maxX = globalMaxX + PAD;
+      minY = lminY - PAD - LABEL_SPACE;
+      maxY = lmaxY + PAD;
+    }
     bands.push({
       id: `layerBand::${layer}`,
       type: "layerBand",
