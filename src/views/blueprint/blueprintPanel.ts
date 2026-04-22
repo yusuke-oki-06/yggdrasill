@@ -72,9 +72,15 @@ export class BlueprintPanel {
       null,
       this.disposables,
     );
-    void this.renderShell().then(() => {
-      if (harness) this.update(harness, inconsistencies);
-    });
+    void this.renderShell()
+      .then(() => {
+        if (harness) this.update(harness, inconsistencies);
+      })
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : String(err);
+        void vscode.window.showErrorMessage(`Yggdrasill Blueprint failed to load: ${message}`);
+        this.panel.webview.html = fallbackErrorHtml(message);
+      });
   }
 
   update(harness: Harness, inconsistencies: Inconsistency[] = []): void {
@@ -166,6 +172,20 @@ export class BlueprintPanel {
       // ignore
     }
   }
+}
+
+function fallbackErrorHtml(message: string): string {
+  const safe = message.replace(/[&<>"']/g, (c) => {
+    const map: Record<string, string> = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
+    return map[c] ?? c;
+  });
+  return `<!doctype html><html><head><meta charset="UTF-8"><title>Yggdrasill Blueprint</title></head><body style="font-family:sans-serif;padding:24px;color:#fca5a5"><h2>Blueprint failed to load</h2><pre style="white-space:pre-wrap;background:rgba(0,0,0,0.25);padding:12px;border-radius:8px">${safe}</pre><p>Please file an issue at <a href="https://github.com/yusuke-oki-06/yggdrasill/issues">github.com/yusuke-oki-06/yggdrasill/issues</a> with your VS Code version.</p></body></html>`;
 }
 
 function randomNonce(): string {
