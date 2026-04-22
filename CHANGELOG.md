@@ -4,6 +4,18 @@ All notable changes to Yggdrasill will be documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.2] - 2026-04-22
+
+Finishing the Marketplace listing polish started in 0.1.1.
+
+### Changed
+- The "Why another Claude Code tool?" side-by-side image now
+  uses the real-harness blueprint capture on the right (the
+  35-node layer-band view), not the synthetic demo.
+- Gallery screenshots (`blueprint-memory-expanded.png`,
+  `blueprint-search.png`) regenerated from the demo with layer
+  bands + smoothstep routing so they match the hero visually.
+
 ## [0.1.1] - 2026-04-22
 
 Marketplace launch polish. Same feature surface as 0.1.0; this
