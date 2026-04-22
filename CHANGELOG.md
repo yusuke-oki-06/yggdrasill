@@ -4,6 +4,17 @@ All notable changes to Yggdrasill will be documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.3] - 2026-04-22
+
+First release that is actually discoverable on the Marketplace.
+
+### Fixed
+- Corrected `publisher` field in `package.json` from the non-existent
+  `yusuke-oki-06` to the real publisher `yusukeoki`. Previous attempts at
+  `vsce publish` exited cleanly but never registered with the Marketplace
+  because the target publisher did not exist. README badges and the
+  `ext install` command have been updated to match.
+
 ## [0.1.2] - 2026-04-22
 
 Finishing the Marketplace listing polish started in 0.1.1.

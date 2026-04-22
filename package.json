@@ -2,9 +2,9 @@
   "name": "yggdrasill",
   "displayName": "Yggdrasill — Harness Graph",
   "description": "Harness relationship graph for Claude Code, inside VS Code. Skills, hooks, MCP, memory, plugins — and how they connect.",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "license": "MIT",
-  "publisher": "yusuke-oki-06",
+  "publisher": "yusukeoki",
   "author": {
     "name": "Yusuke Oki"
   },

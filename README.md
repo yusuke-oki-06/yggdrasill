@@ -2,8 +2,8 @@
 
 > **Harness relationship graph for Claude Code, inside VS Code.**
 
-[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/yusuke-oki-06.yggdrasill?color=8b5cf6&label=Marketplace&logo=visualstudiocode)](https://marketplace.visualstudio.com/items?itemName=yusuke-oki-06.yggdrasill)
-[![Installs](https://img.shields.io/visual-studio-marketplace/i/yusuke-oki-06.yggdrasill?color=14b8a6&logo=visualstudiocode)](https://marketplace.visualstudio.com/items?itemName=yusuke-oki-06.yggdrasill)
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/yusukeoki.yggdrasill?color=8b5cf6&label=Marketplace&logo=visualstudiocode)](https://marketplace.visualstudio.com/items?itemName=yusukeoki.yggdrasill)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/yusukeoki.yggdrasill?color=14b8a6&logo=visualstudiocode)](https://marketplace.visualstudio.com/items?itemName=yusukeoki.yggdrasill)
 [![CI](https://img.shields.io/github/actions/workflow/status/yusuke-oki-06/yggdrasill/ci.yml?branch=main&label=CI&logo=github)](https://github.com/yusuke-oki-06/yggdrasill/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -30,7 +30,7 @@ There are already great extensions for browsing skills, listing MCP servers, and
 Install directly from the VS Code Marketplace:
 
 ```
-ext install yusuke-oki-06.yggdrasill
+ext install yusukeoki.yggdrasill
 ```
 
 Or from the command palette: `Extensions: Install Extensions` → search **Yggdrasill**.
@@ -38,7 +38,7 @@ Or from the command palette: `Extensions: Install Extensions` → search **Yggdr
 Prefer offline? Download the latest `.vsix` from [GitHub Releases](https://github.com/yusuke-oki-06/yggdrasill/releases/latest) and run:
 
 ```bash
-code --install-extension yggdrasill-0.1.0.vsix
+code --install-extension yggdrasill-0.1.3.vsix
 ```
 
 ## Features
