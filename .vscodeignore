@@ -8,7 +8,6 @@ docs/**
 .playwright-mcp/**
 media/blueprint/**
 media/candidates/**
-media/yggdrasill-icon.svg
 scripts/**
 .gitignore
 .eslintrc.json
