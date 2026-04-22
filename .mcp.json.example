@@ -1,0 +1,36 @@
+{
+  "mcpServers": {
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "env": {}
+    },
+    "github": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PAT}"
+      }
+    },
+    "notion": {
+      "type": "http",
+      "url": "https://mcp.notion.com/mcp"
+    },
+    "drawio": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@drawio/mcp"],
+      "env": {}
+    },
+    "serena": {
+      "type": "stdio",
+      "command": "serena-mcp-server",
+      "args": ["--context", "codex", "--project", "<ABSOLUTE_PATH_TO_REPO>"],
+      "env": {
+        "SERENA_HOME": "<ABSOLUTE_PATH_TO_REPO>/.serena-home"
+      }
+    }
+  }
+}

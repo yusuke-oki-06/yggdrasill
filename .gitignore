@@ -14,10 +14,11 @@ coverage/
 .env.local
 .env.*.local
 
-# Claude workspace
-.claude/session-state.md
-.claude/settings.local.json
-.claude/worktrees/
+# Personal Claude Code workspace — not part of the extension itself
+.claude/
+.mcp.json
+AGENTS.md
+CLAUDE.md
 
 # Serena
 .serena/
