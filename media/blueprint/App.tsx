@@ -302,19 +302,27 @@ function Inner({ vscode }: AppProps): JSX.Element {
       const key = `${source}->${target}::${data.relation}`;
       if (seenEdgeKeys.has(key)) continue;
       seenEdgeKeys.add(key);
+      const isRelationship = data.kind === "relationship";
       baseEdges.push({
         id: key,
         source,
         target,
-        label: data.kind === "relationship" ? data.relation : undefined,
-        animated: data.kind === "relationship",
-        style:
-          data.kind === "relationship"
-            ? {
-                stroke: RELATION_COLOR[data.relation] ?? "#a855f7",
-                strokeWidth: RELATION_WIDTH[data.relation] ?? 1.6,
-              }
-            : { stroke: "rgba(150,150,150,0.3)", strokeWidth: 0.8 },
+        // Ownership edges use smoothstep so the many declaration →
+        // Claude → runtime connections route along the layer grid
+        // instead of weaving through each other. Relationships keep the
+        // curved bezier so overrides / requires-tool / references feel
+        // like overlay annotations above the ownership backbone.
+        type: isRelationship ? "default" : "smoothstep",
+        data: isRelationship ? undefined : { pathOptions: { borderRadius: 14, offset: 12 } },
+        zIndex: isRelationship ? 2 : 0,
+        label: isRelationship ? data.relation : undefined,
+        animated: isRelationship,
+        style: isRelationship
+          ? {
+              stroke: RELATION_COLOR[data.relation] ?? "#a855f7",
+              strokeWidth: RELATION_WIDTH[data.relation] ?? 1.6,
+            }
+          : { stroke: "rgba(148,163,184,0.35)", strokeWidth: 0.9 },
         labelStyle: {
           fontSize: data.relation === "overrides" || data.relation === "conflicts" ? 11 : 10,
           fill:
@@ -326,6 +334,8 @@ function Inner({ vscode }: AppProps): JSX.Element {
           fontWeight: data.relation === "overrides" || data.relation === "conflicts" ? 600 : 400,
         },
         labelBgStyle: { fill: "rgba(15,23,42,0.85)" },
+        labelBgPadding: [6, 3],
+        labelBgBorderRadius: 6,
       });
     }
 
