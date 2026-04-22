@@ -12,8 +12,16 @@ import {
 import { useCallback, useEffect, useRef, useState, type JSX } from "react";
 import { CategoryGroupNode, type CategoryGroupData } from "./components/CategoryGroupNode.js";
 import { HarnessNode, type HarnessNodeData } from "./components/HarnessNode.js";
+import { LayerBandNode, type LayerBandData } from "./components/LayerBandNode.js";
 import { Toolbar, type ToolbarFilters } from "./components/Toolbar.js";
-import { fallbackGrid, layoutNodes, LOADING_LAYER } from "./layout.js";
+import {
+  fallbackGrid,
+  layoutNodes,
+  LAYER_LABELS,
+  LOADING_LAYER,
+  NODE_H,
+  NODE_W,
+} from "./layout.js";
 import type {
   EdgeData,
   FromExtensionMessage,
@@ -42,7 +50,60 @@ const RELATION_WIDTH: Record<string, number> = {
   "declared-in": 1.2,
 };
 
-const NODE_TYPES = { harness: HarnessNode, categoryGroup: CategoryGroupNode };
+const NODE_TYPES = {
+  harness: HarnessNode,
+  categoryGroup: CategoryGroupNode,
+  layerBand: LayerBandNode,
+};
+
+type ViewNode = Node<HarnessNodeData | CategoryGroupData | LayerBandData>;
+
+function deriveLayerBands(
+  nodes: Array<Node<HarnessNodeData | CategoryGroupData>>,
+  direction: "RIGHT" | "DOWN",
+): Array<Node<LayerBandData>> {
+  const byLayer = new Map<number, Array<{ x: number; y: number; w: number; h: number }>>();
+  for (const n of nodes) {
+    // Children of a categoryGroup have position relative to their parent; their
+    // parent already covers them in absolute coordinates, so skip here.
+    if (n.parentId) continue;
+    const kind =
+      n.type === "categoryGroup"
+        ? (n.data as CategoryGroupData).kind
+        : (n.data as HarnessNodeData).payload.kind;
+    const layer = LOADING_LAYER[kind] ?? 3;
+    const styleW = typeof n.style?.width === "number" ? n.style.width : undefined;
+    const styleH = typeof n.style?.height === "number" ? n.style.height : undefined;
+    const w = styleW ?? NODE_W[kind] ?? 180;
+    const h = styleH ?? NODE_H[kind] ?? 80;
+    const bucket = byLayer.get(layer) ?? [];
+    bucket.push({ x: n.position.x, y: n.position.y, w, h });
+    byLayer.set(layer, bucket);
+  }
+  const PAD = 28;
+  const LABEL_SPACE = 34;
+  const bands: Array<Node<LayerBandData>> = [];
+  for (const [layer, boxes] of byLayer) {
+    if (boxes.length === 0) continue;
+    const meta = LAYER_LABELS[layer];
+    if (!meta) continue;
+    const minX = Math.min(...boxes.map((b) => b.x)) - PAD;
+    const minY = Math.min(...boxes.map((b) => b.y)) - PAD - LABEL_SPACE;
+    const maxX = Math.max(...boxes.map((b) => b.x + b.w)) + PAD;
+    const maxY = Math.max(...boxes.map((b) => b.y + b.h)) + PAD;
+    bands.push({
+      id: `layerBand::${layer}`,
+      type: "layerBand",
+      position: { x: minX, y: minY },
+      style: { width: maxX - minX, height: maxY - minY },
+      data: { layer, label: meta.label, accent: meta.accent, direction },
+      zIndex: -20,
+      draggable: false,
+      selectable: false,
+    });
+  }
+  return bands;
+}
 
 // Kinds that should NOT be wrapped in a category group (already singleton or
 // kept independent so cross-category edges read cleanly).
@@ -84,7 +145,7 @@ function Inner({ vscode }: AppProps): JSX.Element {
     showPerms: false,
     layout: "RIGHT",
   });
-  const [graphNodes, setGraphNodes] = useState<Node<HarnessNodeData | CategoryGroupData>[]>([]);
+  const [graphNodes, setGraphNodes] = useState<ViewNode[]>([]);
   const [graphEdges, setGraphEdges] = useState<Edge[]>([]);
   const [stats, setStats] = useState("");
   const [layoutBusy, setLayoutBusy] = useState(false);
@@ -252,7 +313,8 @@ function Inner({ vscode }: AppProps): JSX.Element {
     setLayoutBusy(true);
     const apply = (positioned: Node<HarnessNodeData | CategoryGroupData>[]): void => {
       if (cancelled) return;
-      let finalNodes = positioned;
+      const bands = deriveLayerBands(positioned, filters.layout);
+      let finalNodes: ViewNode[] = [...bands, ...positioned];
       const finalEdges = baseEdges;
 
       if (q.length > 0) {
@@ -274,7 +336,7 @@ function Inner({ vscode }: AppProps): JSX.Element {
           }
         }
         finalNodes = finalNodes.map((n) =>
-          n.type === "categoryGroup" || matched.has(n.id)
+          n.type === "categoryGroup" || n.type === "layerBand" || matched.has(n.id)
             ? n
             : { ...n, style: { ...(n.style ?? {}), opacity: 0.18 } },
         );
@@ -310,6 +372,7 @@ function Inner({ vscode }: AppProps): JSX.Element {
 
   const onNodeClick: NodeMouseHandler = useCallback(
     (_, node) => {
+      if (node.type === "layerBand") return;
       if (node.type === "categoryGroup") {
         const kind = (node.data as CategoryGroupData | undefined)?.kind;
         if (!kind) return;
@@ -365,6 +428,7 @@ function Inner({ vscode }: AppProps): JSX.Element {
             pannable
             maskColor="rgba(15,23,42,0.65)"
             nodeColor={(n) => {
+              if (n.type === "layerBand") return "rgba(124,58,237,0.05)";
               if (n.type === "categoryGroup") {
                 const kind = (n.data as CategoryGroupData | undefined)?.kind ?? "skill";
                 return KIND_MINIMAP[kind] ?? "#888";

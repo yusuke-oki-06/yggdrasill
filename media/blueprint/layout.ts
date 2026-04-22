@@ -3,7 +3,7 @@ import type { Edge, Node } from "@xyflow/react";
 
 const elk = new ELK();
 
-const NODE_W: Record<string, number> = {
+export const NODE_W: Record<string, number> = {
   workspace: 180,
   pluginGroup: 150,
   plugin: 140,
@@ -19,7 +19,7 @@ const NODE_W: Record<string, number> = {
   env: 110,
 };
 
-const NODE_H: Record<string, number> = {
+export const NODE_H: Record<string, number> = {
   workspace: 80,
   pluginGroup: 60,
   plugin: 56,
@@ -33,6 +33,16 @@ const NODE_H: Record<string, number> = {
   configFile: 52,
   tool: 38,
   env: 38,
+};
+
+export const LAYER_LABELS: Record<number, { label: string; accent: string }> = {
+  0: { label: "Foundation", accent: "rgba(236, 72, 153, 0.55)" },
+  1: { label: "Declared", accent: "rgba(20, 184, 166, 0.55)" },
+  2: { label: "Composed", accent: "rgba(245, 158, 11, 0.55)" },
+  3: { label: "Claude Code", accent: "rgba(139, 92, 246, 0.7)" },
+  4: { label: "Events", accent: "rgba(239, 68, 68, 0.55)" },
+  5: { label: "Runtime", accent: "rgba(34, 211, 238, 0.55)" },
+  6: { label: "Config files", accent: "rgba(250, 204, 21, 0.55)" },
 };
 
 // Loading order (left -> right) with Claude Code itself as the central

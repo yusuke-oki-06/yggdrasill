@@ -318,6 +318,44 @@ body,
   border: none;
 }
 
+.layer-band {
+  width: 100%;
+  height: 100%;
+  border: 1.5px dashed;
+  border-radius: 18px;
+  pointer-events: none;
+  position: relative;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.layer-band .lb-header {
+  position: absolute;
+  top: 8px;
+  left: 14px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 11px;
+  user-select: none;
+  pointer-events: none;
+}
+
+.layer-band .lb-tag {
+  background: rgba(255, 255, 255, 0.18);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.layer-band .lb-label {
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+
 /* react-flow overrides */
 .react-flow__attribution {
   display: none;
