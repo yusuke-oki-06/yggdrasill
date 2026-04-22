@@ -1,6 +1,6 @@
 {
   "name": "yggdrasill",
-  "displayName": "Yggdrasill",
+  "displayName": "Yggdrasill — Harness Graph",
   "description": "Harness relationship graph for Claude Code, inside VS Code. Skills, hooks, MCP, memory, plugins — and how they connect.",
   "version": "0.1.0",
   "license": "MIT",
