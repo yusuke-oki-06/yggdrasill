@@ -4,6 +4,34 @@ All notable changes to Yggdrasill will be documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.1] - 2026-04-22
+
+Marketplace launch polish. Same feature surface as 0.1.0; this
+release is about what the listing looks like to someone who just
+found the extension.
+
+### Changed
+- Marketplace displayName is now "Yggdrasill — Harness Graph" so
+  the card says what the extension does at a glance (the bare
+  "Yggdrasill" was already claimed by Runespeakers.ygg).
+- README hero image swapped from the synthetic demo capture to a
+  real Extension-Development-Host screenshot of this repo's own
+  Claude Code harness — 35 nodes across all seven labeled layer
+  bands (L0 Foundation through L6 Config files), showing override
+  edges, smoothstep ownership routing, declared-in edges, and
+  live MCP servers.
+- README refreshed with Marketplace / Installs / CI / License
+  badges, a Security posture section, a gallery with the
+  memory-expanded and search-focus screenshots, and the primary
+  install path set to `ext install yusuke-oki-06.yggdrasill`.
+
+### Security
+- Env values are no longer rendered anywhere in the UI. The graph
+  and the sidebar now display `(set)` / `(missing)` / `(empty)`
+  instead of the raw value, so a shared screenshot or screen cast
+  can never leak an API token or PAT. The value is still
+  accessible via the settings.json file it came from.
+
 ## [0.1.0] - 2026-04-21
 
 First public preview. The point of this release is the **relationship graph**:
