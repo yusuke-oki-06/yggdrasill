@@ -377,7 +377,11 @@ function leavesFor(category: Category, h: Harness, filter?: Source): HarnessNode
       return Object.entries(h.env).map(([k, v]) => ({
         kind: "leaf" as const,
         label: k,
-        description: v,
+        // Raw env values often contain secrets (API tokens, PATs); only show
+        // whether the value is present so screenshots / screen-shares stay
+        // safe. The actual value is still reachable via the settings.json
+        // entry itself.
+        description: v ? "(set)" : "(empty)",
       }));
     case "issues":
       return h.issues.map((issue) => ({

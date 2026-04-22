@@ -119,12 +119,15 @@ export function buildGraph(harness: Harness, options: BuildOptions = {}): GraphE
     if (includeEnv) {
       for (const envKey of mcp.envKeys) {
         const envId = nodeId("env", envKey);
+        // Do NOT render the raw env value — these are often API tokens and
+        // would leak if a user shared a screenshot. Only surface whether the
+        // value is resolvable in settings.json.
         push({
           data: {
             id: envId,
             label: envKey,
             kind: "env",
-            description: harness.env[envKey] ?? "(missing)",
+            description: harness.env[envKey] ? "(set)" : "(missing)",
           },
         });
         edges.push(edgeFor(id, envId, "needs-env"));
